@@ -1,0 +1,93 @@
+{
+  "name": "toonflow",
+  "version": "1.0.0",
+  "description": "Toonflow - AI 短剧创作平台",
+  "main": "dist-electron/main.js",
+  "private": true,
+  "scripts": {
+    "dev:web": "cd web && npm run dev",
+    "dev:electron": "tsc -p electron/tsconfig.json && electron .",
+    "dev": "npm run dev:web",
+    "build:electron": "tsc -p electron/tsconfig.json",
+    "build:web": "cd web && npm run build",
+    "build": "npm run build:web && npm run build:electron",
+    "dist": "npm run build && electron-builder",
+    "dist:mac": "npm run build && electron-builder --mac"
+  },
+  "dependencies": {
+    "electron-is-dev": "^2.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "electron": "41.2.0",
+    "electron-builder": "^25.1.0",
+    "typescript": "^5.0.0"
+  },
+  "build": {
+    "appId": "net.toonflow.app",
+    "productName": "Toonflow",
+    "copyright": "Copyright © 2026",
+    "directories": {
+      "output": "release",
+      "buildResources": "build-resources"
+    },
+    "files": [
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "web/.next/standalone",
+        "to": "web/.next/standalone"
+      },
+      {
+        "from": "web/.next/static",
+        "to": "web/.next/static"
+      },
+      {
+        "from": "web/public",
+        "to": "web/public"
+      },
+      {
+        "from": "novels",
+        "to": "novels",
+        "filter": ["**/*"]
+      }
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["universal"]
+        }
+      ],
+      "icon": "build-resources/icon.icns",
+      "category": "public.app-category.developer-tools",
+      "artifactName": "${productName}-${version}-mac.${ext}"
+    },
+    "dmg": {
+      "title": "${productName}",
+      "artifactName": "${productName}-${version}-mac.${ext}"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build-resources/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "${productName}"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "icon": "build-resources/icon.png",
+      "category": "Development"
+    },
+    "publish": null
+  }
+}

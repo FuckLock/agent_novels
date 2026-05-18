@@ -1,0 +1,47 @@
+.DS_Store
+
+# Dependencies
+node_modules/
+
+# Build output
+.next/
+dist/
+dist-electron/
+out/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local editor state
+.vscode/
+
+# Codex tooling (managed separately by user)
+.agents/
+.codex/
+
+# Backup directories (never commit backups)
+.claude-back/
+
+# Local migration backups
+.migration-backups/
+
+# Claude Code local settings (per-user permission overrides)
+.claude/settings.local.json
+.claude/.needs-review
+.claude/criteria/
+
+# Secrets - real API keys (use *.example for templates)
+config/banana.json
+config/models/**/*.json
+.env
+.env.*
+!.env.example
+
+# Large external assets (managed externally)
+novels/造化之门/
+web/Toonflow-app/
