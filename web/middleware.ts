@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const ACCESS_MODES = ['localhost', 'lan', 'private_server'] as const;
+type AccessMode = (typeof ACCESS_MODES)[number];
+
 function normalizeHost(value: string | null) {
   const raw = (value || '').split(',')[0]?.trim() || '';
   if (!raw) return '';
@@ -18,6 +21,11 @@ function hasAccessCredential(request: NextRequest) {
   return hasBearer || Boolean(request.headers.get('x-toonflow-access-token')?.trim());
 }
 
+function readAccessMode(): AccessMode {
+  const raw = (process.env.TOONFLOW_ACCESS_MODE || '').trim() as AccessMode;
+  return ACCESS_MODES.includes(raw) ? raw : 'localhost';
+}
+
 export function middleware(request: NextRequest) {
   const host = normalizeHost(
     request.headers.get('x-forwarded-host') ||
@@ -33,6 +41,7 @@ export function middleware(request: NextRequest) {
     {
       error: '非 localhost API 访问需要访问凭据',
       host,
+      accessMode: readAccessMode(),
     },
     { status: 401 },
   );
