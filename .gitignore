@@ -38,6 +38,7 @@ pnpm-debug.log*
 # Secrets - real API keys (use *.example for templates)
 config/banana.json
 config/models/**/*.json
+config/models/**/*.md
 .env
 .env.*
 !.env.example
