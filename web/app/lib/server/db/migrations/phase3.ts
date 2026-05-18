@@ -1,0 +1,125 @@
+import type { Migration } from './types';
+
+export const phase3Migrations: Migration[] = [
+  {
+    id: '0002_phase3_project_model_security',
+    version: 2,
+    statements: [
+      `CREATE TABLE IF NOT EXISTS projects (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT '',
+        type TEXT NOT NULL DEFAULT '',
+        style TEXT NOT NULL DEFAULT '',
+        ratio TEXT NOT NULL DEFAULT '',
+        summary TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'active',
+        revision INTEGER NOT NULL DEFAULT 1,
+        chapter_count INTEGER NOT NULL DEFAULT 0,
+        script_count INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        deleted_at INTEGER
+      )`,
+      'CREATE UNIQUE INDEX IF NOT EXISTS projects_name_idx ON projects (name)',
+      'CREATE INDEX IF NOT EXISTS projects_status_idx ON projects (status)',
+      `CREATE TABLE IF NOT EXISTS episodes (
+        id TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        episode_index INTEGER NOT NULL,
+        title TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'draft',
+        revision INTEGER NOT NULL DEFAULT 1,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+      )`,
+      'CREATE UNIQUE INDEX IF NOT EXISTS episodes_project_episode_idx ON episodes (project_id, episode_index)',
+      `CREATE TABLE IF NOT EXISTS operators (
+        id TEXT PRIMARY KEY,
+        display_name TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'owner',
+        access_mode TEXT NOT NULL DEFAULT 'localhost',
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )`,
+      `INSERT OR IGNORE INTO operators
+        (id, display_name, role, access_mode, created_at, updated_at)
+       VALUES ('local-owner', '本机用户', 'owner', 'localhost',
+        CAST(strftime('%s','now') AS INTEGER) * 1000,
+        CAST(strftime('%s','now') AS INTEGER) * 1000)`,
+      `CREATE TABLE IF NOT EXISTS access_credentials (
+        id TEXT PRIMARY KEY,
+        operator_id TEXT NOT NULL,
+        label TEXT NOT NULL,
+        token_hash TEXT NOT NULL,
+        access_mode TEXT NOT NULL,
+        enabled INTEGER NOT NULL DEFAULT 1,
+        last_used_at INTEGER,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        FOREIGN KEY (operator_id) REFERENCES operators(id) ON DELETE CASCADE
+      )`,
+      'CREATE UNIQUE INDEX IF NOT EXISTS access_credentials_token_hash_idx ON access_credentials (token_hash)',
+      `CREATE TABLE IF NOT EXISTS secret_refs (
+        id TEXT PRIMARY KEY,
+        provider TEXT NOT NULL,
+        scope TEXT NOT NULL,
+        label TEXT NOT NULL,
+        secret_preview TEXT NOT NULL DEFAULT '',
+        secret_digest TEXT NOT NULL DEFAULT '',
+        secret_ciphertext TEXT NOT NULL DEFAULT '',
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )`,
+      'CREATE INDEX IF NOT EXISTS secret_refs_provider_scope_idx ON secret_refs (provider, scope)',
+      `CREATE TABLE IF NOT EXISTS provider_configs (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        base_url TEXT NOT NULL DEFAULT '',
+        enabled INTEGER NOT NULL DEFAULT 1,
+        status TEXT NOT NULL DEFAULT 'capability_unknown',
+        secret_ref_id TEXT,
+        capabilities_json TEXT NOT NULL DEFAULT '{}',
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        FOREIGN KEY (secret_ref_id) REFERENCES secret_refs(id) ON DELETE SET NULL
+      )`,
+      'CREATE UNIQUE INDEX IF NOT EXISTS provider_configs_name_type_base_idx ON provider_configs (name, type, base_url)',
+      `CREATE TABLE IF NOT EXISTS model_configs (
+        id TEXT PRIMARY KEY,
+        provider_id TEXT NOT NULL,
+        model_id TEXT NOT NULL,
+        type TEXT NOT NULL,
+        name TEXT NOT NULL,
+        mode TEXT,
+        adapter TEXT,
+        enabled INTEGER NOT NULL DEFAULT 1,
+        is_default INTEGER NOT NULL DEFAULT 0,
+        api_json TEXT NOT NULL DEFAULT '{}',
+        default_params_json TEXT NOT NULL DEFAULT '{}',
+        capabilities_json TEXT NOT NULL DEFAULT '{}',
+        request_template_json TEXT NOT NULL DEFAULT '{}',
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        FOREIGN KEY (provider_id) REFERENCES provider_configs(id) ON DELETE CASCADE
+      )`,
+      'CREATE UNIQUE INDEX IF NOT EXISTS model_configs_type_model_id_idx ON model_configs (type, model_id)',
+      'CREATE INDEX IF NOT EXISTS model_configs_provider_idx ON model_configs (provider_id)',
+      `CREATE TABLE IF NOT EXISTS skill_versions (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        category TEXT NOT NULL,
+        version TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'active',
+        path TEXT NOT NULL,
+        checksum TEXT NOT NULL,
+        metadata_json TEXT NOT NULL DEFAULT '{}',
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )`,
+      'CREATE UNIQUE INDEX IF NOT EXISTS skill_versions_name_version_path_idx ON skill_versions (name, version, path)',
+    ],
+  },
+];

@@ -1,0 +1,37 @@
+# doubao-1.5 — 豆包 Seedance 1.5 Pro
+
+## 基本信息
+
+- **类型**：video
+- **模式**：start_end_frame（首尾帧）
+- **状态**：enabled
+
+## API 配置
+
+- **提交接口**：POST https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks
+- **轮询接口**：GET https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks/{task_id}
+- **API Key**：<your_api_key_here>
+
+## 请求体模板
+
+```json
+{
+  "model": "doubao-seedance-1-5-pro-251215",
+  "content": [
+    { "type": "text", "text": "{prompt}" },
+    { "type": "image_url", "image_url": { "url": "{startFrameUrl}" }, "role": "first_frame" },
+    { "type": "image_url", "image_url": { "url": "{lastFrameUrl}" }, "role": "last_frame" }
+  ],
+  "generate_audio": true,
+  "ratio": "adaptive",
+  "duration": 5,
+  "watermark": false
+}
+```
+
+## 轮询说明
+
+- 每隔 5 秒请求一次，最多轮询 60 次（视频生成较慢）
+- 请求方式：GET，无请求体
+- 成功标志：`status == "succeeded"`，取 `content[0].video_url`
+- 失败标志：`status == "failed"`

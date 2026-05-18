@@ -1,0 +1,17 @@
+{
+  "modelId": "nano-banana",
+  "name": "Nano Banana 图像生成",
+  "type": "image",
+  "mode": "text_to_image",
+  "enabled": true,
+  "api": {
+    "submitUrl": "https://grsai.dakka.com.cn/v1/draw/nano-banana",
+    "pollUrl": "https://grsai.dakka.com.cn/v1/draw/result",
+    "apiKey": ""
+  },
+  "defaultParams": {
+    "model": "nano-banana-2",
+    "size": "2K",
+    "aspectRatio": "16:9"
+  }
+}

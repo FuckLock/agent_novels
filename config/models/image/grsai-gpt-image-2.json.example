@@ -1,0 +1,44 @@
+{
+  "modelId": "grsai-gpt-image-2",
+  "name": "GRSAI gpt-image-2",
+  "type": "image",
+  "mode": "text_to_image",
+  "provider": "grsai",
+  "enabled": true,
+  "api": {
+    "apiKey": "",
+    "method": "POST",
+    "submitUrl": "https://grsai.dakka.com.cn/v1/draw/completions",
+    "pollUrl": "https://grsai.dakka.com.cn/v1/draw/result"
+  },
+  "defaultParams": {
+    "aspectRatio": "16:9",
+    "webHook": "-1",
+    "shutProgress": false,
+    "model": "gpt-image-2"
+  },
+  "capabilities": {
+    "aspectRatios": [
+      "auto",
+      "1:1",
+      "3:2",
+      "2:3",
+      "16:9",
+      "9:16",
+      "5:4",
+      "4:5",
+      "4:3",
+      "3:4",
+      "21:9",
+      "9:21",
+      "1:3",
+      "3:1",
+      "2:1",
+      "1:2"
+    ],
+    "supportsReferenceImages": true,
+    "sizeOptions": [],
+    "sizeParam": null
+  },
+  "adapter": "grsai-task-polling"
+}

@@ -1,0 +1,60 @@
+[
+  {
+    "id": "costume-001",
+    "name": "白衣常服",
+    "type": "costume",
+    "description": "白色长袍，银边腰封",
+    "prompt": "",
+    "artStyle": "",
+    "state": "pending",
+    "imagePath": "",
+    "generatedAt": null,
+    "apiTaskId": "",
+    "modelId": "",
+    "resolution": "",
+    "sourceEpisode": "",
+    "episodeRefs": [],
+    "createdAt": "2026-05-15T11:24:30.612Z",
+    "updatedAt": "2026-05-15T11:24:30.612Z"
+  },
+  {
+    "id": "char-001",
+    "name": "叶真",
+    "type": "character",
+    "description": "青年剑修",
+    "identityAnchor": [
+      "白衣",
+      "长剑"
+    ],
+    "prompt": "",
+    "artStyle": "",
+    "state": "pending",
+    "imagePath": "",
+    "generatedAt": null,
+    "apiTaskId": "",
+    "modelId": "",
+    "resolution": "",
+    "sourceEpisode": "",
+    "episodeRefs": [],
+    "createdAt": "2026-05-15T11:24:30.613Z",
+    "updatedAt": "2026-05-15T11:24:30.613Z"
+  },
+  {
+    "id": "makeup-001",
+    "name": "冷峻妆发",
+    "type": "makeup",
+    "description": "束发银冠，眉眼冷峻",
+    "prompt": "",
+    "artStyle": "",
+    "state": "pending",
+    "imagePath": "",
+    "generatedAt": null,
+    "apiTaskId": "",
+    "modelId": "",
+    "resolution": "",
+    "sourceEpisode": "",
+    "episodeRefs": [],
+    "createdAt": "2026-05-15T11:24:30.615Z",
+    "updatedAt": "2026-05-15T11:24:30.615Z"
+  }
+]

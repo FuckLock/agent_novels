@@ -1,0 +1,12 @@
+{
+  "modelId": "kimi-k2.5",
+  "name": "kimi-k2.5",
+  "type": "language",
+  "enabled": true,
+  "api": {
+    "baseUrl": "https://api.moonshot.cn/v1",
+    "apiKey": ""
+  },
+  "authMode": "api",
+  "provider": "kimi"
+}

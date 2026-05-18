@@ -1,0 +1,47 @@
+{
+  "modelId": "doubao-seedance-1-5-pro",
+  "name": "豆包 Seedance 1.5 Pro",
+  "type": "video",
+  "mode": "start_end_frame",
+  "enabled": true,
+  "api": {
+    "submitUrl": "https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks",
+    "pollUrl": "https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks/{task_id}",
+    "apiKeyEnv": "",
+    "method": "POST"
+  },
+  "defaultParams": {
+    "model": "doubao-seedance-1-5-pro-251215",
+    "generate_audio": true,
+    "ratio": "adaptive",
+    "duration": 5,
+    "watermark": false
+  },
+  "requestTemplate": {
+    "model": "{defaultParams.model}",
+    "content": [
+      {
+        "type": "text",
+        "text": "{prompt}"
+      },
+      {
+        "type": "image_url",
+        "image_url": {
+          "url": "{startFrameUrl}"
+        },
+        "role": "first_frame"
+      },
+      {
+        "type": "image_url",
+        "image_url": {
+          "url": "{lastFrameUrl}"
+        },
+        "role": "last_frame"
+      }
+    ],
+    "generate_audio": "{defaultParams.generate_audio}",
+    "ratio": "{defaultParams.ratio}",
+    "duration": "{defaultParams.duration}",
+    "watermark": "{defaultParams.watermark}"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "modelId": "deepseek-v4-flash",
+  "name": "DeepSeek V4 Flash",
+  "type": "language",
+  "enabled": true,
+  "api": {
+    "baseUrl": "https://api.deepseek.com",
+    "apiKey": "",
+    "protocol": "openai-compatible"
+  },
+  "authMode": "api",
+  "provider": "deepseek",
+  "defaultParams": {
+    "model": "deepseek-v4-flash",
+    "thinking": {
+      "type": "disabled"
+    }
+  }
+}

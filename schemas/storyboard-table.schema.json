@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "StoryboardTable",
+  "description": "结构化分镜表，存储位置：novels/{name}/seedance/ep{N}/storyboard-table.json",
+  "type": "object",
+  "required": ["episode", "totalDuration", "rows"],
+  "properties": {
+    "episode": {
+      "type": "string",
+      "pattern": "^ep\\d{2}$",
+      "description": "集数标识，如 'ep01'"
+    },
+    "totalDuration": {
+      "type": "number",
+      "minimum": 0,
+      "description": "总时长（秒）"
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/StoryboardRow"
+      }
+    },
+    "_validationLog": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "rule": { "type": "string", "description": "校验规则名称" },
+          "seq": { "type": "integer", "description": "涉及的分镜序号" },
+          "issue": { "type": "string", "description": "发现的问题" },
+          "action": { "type": "string", "description": "采取的修正措施" }
+        }
+      },
+      "description": "连贯性校验修正记录（10项校验自动执行后的日志）"
+    }
+  },
+  "$defs": {
+    "StoryboardRow": {
+      "type": "object",
+      "required": ["seq", "description", "scene", "assetIds", "duration", "shotType", "cameraMove", "action", "emotion", "lighting", "dialogue", "soundEffect", "trackId"],
+      "properties": {
+        "seq": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "分镜序号，从 1 开始"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 15,
+          "maxLength": 50,
+          "description": "画面描述（15-50字，含前景/中景/背景至少两层空间层次）"
+        },
+        "scene": {
+          "type": "string",
+          "description": "场景名称"
+        },
+        "assetIds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "关联资产 ID 数组。规则：角色出现即引用（含局部）；场景资产必选；父子资产选择按剧情状态选衍生ID，禁止主/衍生同时出现"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0.5,
+          "description": "时长（秒）。台词时长=字数÷情绪语速+停顿+1s余量。无台词≤6s（一镜到底例外≤12s）"
+        },
+        "shotType": {
+          "type": "string",
+          "enum": ["大远景", "远景", "全景", "中景", "近景", "特写", "大特写"],
+          "description": "景别。景别递进法则：相邻跨度不超两级，禁止连续3镜同景别"
+        },
+        "cameraMove": {
+          "type": "string",
+          "description": "运镜：静止/推/拉/摇/移/俯拍/仰拍。一镜到底标注完整路径"
+        },
+        "action": {
+          "type": "string",
+          "description": "角色动作链（含速度节奏）+ 末尾必须标注朝向。格式：缓缓抬手→猛然握拳｜朝向：叶真-面朝右; 萧炎-面朝左。10方位朝向系统"
+        },
+        "emotion": {
+          "type": "string",
+          "description": "情绪：用具象可感描述（如'冷傲轻蔑'），禁止'开心''难过'等模糊词"
+        },
+        "lighting": {
+          "type": "string",
+          "description": "光影：必含光源方向+色调倾向+明暗关系。必须锚定 director-plan 的色彩/光线方案"
+        },
+        "dialogue": {
+          "type": "string",
+          "description": "台词原文（禁止改写，一字不改照搬剧本），无台词填'无台词'"
+        },
+        "soundEffect": {
+          "type": "string",
+          "description": "按「环境音层+动作音层」分层。无音效填'无'"
+        },
+        "trackId": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Track 分组 ID（15s 累计上限，场景切换处优先切分）"
+        },
+        "videoState": {
+          "type": "string",
+          "enum": ["pending", "generating", "success", "failed"],
+          "description": "视频生成状态（阶段 D 使用）"
+        },
+        "videoPath": {
+          "type": "string",
+          "description": "生成的视频文件路径"
+        },
+        "videoTaskId": {
+          "type": "string",
+          "description": "关联的 tasks.json 中的 taskId"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TaskRecords",
+  "description": "异步任务队列，存储位置：novels/{name}/seedance/tasks.json",
+  "type": "array",
+  "items": {
+    "$ref": "#/$defs/TaskRecord"
+  },
+  "$defs": {
+    "TaskRecord": {
+      "type": "object",
+      "required": ["taskId", "type", "state", "modelId", "createdAt", "retryCount"],
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "本地任务 ID，UUID 格式"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["image", "video"],
+          "description": "任务类型"
+        },
+        "assetId": {
+          "type": "string",
+          "description": "关联资产 ID（图片生成时）"
+        },
+        "promptId": {
+          "type": "string",
+          "pattern": "^P\\d{2}$",
+          "description": "关联分镜 ID，如 'P01'（视频生成时）"
+        },
+        "episode": {
+          "type": "string",
+          "pattern": "^ep\\d{2}$",
+          "description": "关联集数，如 'ep01'"
+        },
+        "state": {
+          "type": "string",
+          "enum": ["queued", "submitted", "running", "success", "failed"],
+          "description": "任务状态。生命周期：queued → submitted → running → success/failed"
+        },
+        "apiTaskId": {
+          "type": "string",
+          "description": "远程 API 任务 ID"
+        },
+        "progress": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "进度百分比（0-100）"
+        },
+        "modelId": {
+          "type": "string",
+          "description": "使用的模型 ID"
+        },
+        "resolution": {
+          "type": "string",
+          "description": "分辨率"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "任务创建时间"
+        },
+        "submittedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "提交到 API 的时间"
+        },
+        "completedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "完成时间"
+        },
+        "resultPath": {
+          "type": "string",
+          "description": "产出文件的相对路径"
+        },
+        "error": {
+          "type": "string",
+          "description": "失败原因"
+        },
+        "retryCount": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "已重试次数（默认 0，最多 2 次）"
+        }
+      }
+    }
+  }
+}

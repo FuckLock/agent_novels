@@ -1,0 +1,25 @@
+[
+  {
+    "id": "char-001",
+    "name": "叶真",
+    "type": "character",
+    "description": "青年剑修，白衣，银色发冠",
+    "identityAnchor": [
+      "白衣",
+      "银色发冠",
+      "长剑"
+    ],
+    "prompt": "白衣青年剑修站在山门前，长剑出鞘，3D国漫风格",
+    "artStyle": "",
+    "state": "pending",
+    "imagePath": "",
+    "generatedAt": null,
+    "apiTaskId": "",
+    "modelId": "smoke-image-model",
+    "resolution": "1024x1024",
+    "sourceEpisode": "",
+    "episodeRefs": [],
+    "createdAt": "2026-05-15T11:13:20.598Z",
+    "updatedAt": "2026-05-15T11:13:24.904Z"
+  }
+]

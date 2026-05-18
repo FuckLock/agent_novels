@@ -1,0 +1,28 @@
+{
+  "modelId": "seedance-2.0",
+  "name": "Seedance 2.0 (即梦AI)",
+  "type": "video",
+  "mode": "multiReference",
+  "apiUrl": "",
+  "apiKey": "",
+  "defaults": {
+    "duration": 8,
+    "resolution": "1080p",
+    "aspectRatio": "16:9"
+  },
+  "limits": {
+    "maxReferenceImages": 9,
+    "maxVideosPerPrompt": 3,
+    "maxAudiosPerPrompt": 3,
+    "maxFilesPerPrompt": 12,
+    "maxDuration": 15,
+    "minDuration": 4
+  },
+  "concurrency": {
+    "maxParallel": 3,
+    "pollIntervalMs": 30000,
+    "maxRetries": 2,
+    "timeoutMs": 600000
+  },
+  "notes": "API URL 和 Key 需要在使用前配置。multiReference 模式支持多张参考图+文本提示词生成视频。"
+}

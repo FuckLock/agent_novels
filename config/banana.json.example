@@ -1,0 +1,8 @@
+{
+  "url": "https://grsai.dakka.com.cn/v1/draw/nano-banana",
+  "resultUrl": "https://grsai.dakka.com.cn/v1/draw/result",
+  "apiKey": "",
+  "defaultModel": "nano-banana-2",
+  "defaultSize": "2K",
+  "defaultAspectRatio": "16:9"
+}

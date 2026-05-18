@@ -1,0 +1,21 @@
+{
+  "modelId": "deepseek-v4-pro",
+  "name": "DeepSeek V4 Pro",
+  "type": "language",
+  "enabled": true,
+  "isDefault": true,
+  "api": {
+    "baseUrl": "https://api.deepseek.com",
+    "apiKey": "",
+    "protocol": "openai-compatible"
+  },
+  "authMode": "api",
+  "provider": "deepseek",
+  "defaultParams": {
+    "model": "deepseek-v4-pro",
+    "thinking": {
+      "type": "enabled"
+    },
+    "reasoning_effort": "high"
+  }
+}

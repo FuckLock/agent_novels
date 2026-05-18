@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DirectorPlan",
+  "description": "导演规划（六维度），存储位置：novels/{name}/seedance/ep{N}/director-plan.json",
+  "type": "object",
+  "required": ["episode", "themeCore", "visualStyle", "sceneGroups", "rhythm", "sceneIntents", "soundDesign", "turningPoints", "transitions"],
+  "properties": {
+    "episode": {
+      "type": "string",
+      "pattern": "^ep\\d{2}$",
+      "description": "集数标识，如 'ep01'"
+    },
+    "themeCore": {
+      "type": "object",
+      "description": "维度1：主题与叙事核心",
+      "required": ["emotionalArc", "viewerTakeaway"],
+      "properties": {
+        "emotionalArc": {
+          "type": "string",
+          "description": "全集情感主线，如 '从迷茫到觉醒'"
+        },
+        "viewerTakeaway": {
+          "type": "string",
+          "description": "观众带走什么，如 '即使渺小也要挣扎向上'"
+        }
+      }
+    },
+    "visualStyle": {
+      "type": "object",
+      "description": "维度2：视觉风格基调",
+      "required": ["colorPalette", "lightingPlan", "compositionStyle", "textureDirection"],
+      "properties": {
+        "colorPalette": {
+          "type": "string",
+          "description": "情绪色彩方案（7选1）：暖光淡彩/青绿含蓄/柔暖暗影/冷肃杀色/窗纱漫透/月华清冷/喜庆暖光"
+        },
+        "lightingPlan": {
+          "type": "string",
+          "description": "光线方案（A-G），如 '方案B：侧逆光+冷色温'"
+        },
+        "compositionStyle": {
+          "type": "string",
+          "description": "构图风格，如 '留白写意/对称庄重/不对称张力'"
+        },
+        "textureDirection": {
+          "type": "string",
+          "description": "材质方向，如 '3D渲染+PBR材质+体积光+景深'"
+        }
+      }
+    },
+    "sceneGroups": {
+      "type": "array",
+      "description": "维度3：叙事结构与节奏 — 场景分组",
+      "items": {
+        "type": "object",
+        "required": ["sceneId", "sceneName", "shots", "mood", "lightingKey", "colorScheme"],
+        "properties": {
+          "sceneId": {
+            "type": "string",
+            "description": "关联 assets.json 中的场景 ID"
+          },
+          "sceneName": { "type": "string" },
+          "shots": {
+            "type": "array",
+            "items": { "type": "integer" },
+            "description": "包含的分镜序号"
+          },
+          "mood": {
+            "type": "string",
+            "description": "场景整体情绪"
+          },
+          "lightingKey": {
+            "type": "string",
+            "description": "主光调"
+          },
+          "colorScheme": {
+            "type": "string",
+            "description": "该场景使用的情绪色彩方案"
+          }
+        }
+      }
+    },
+    "rhythm": {
+      "type": "array",
+      "description": "叙事节奏结构",
+      "items": {
+        "type": "object",
+        "required": ["act", "shotRange", "pacing", "note"],
+        "properties": {
+          "act": {
+            "type": "string",
+            "enum": ["opening", "rising", "climax", "falling", "ending"]
+          },
+          "shotRange": {
+            "type": "array",
+            "items": { "type": "integer" },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "分镜范围，如 [1, 5]"
+          },
+          "pacing": {
+            "type": "string",
+            "enum": ["slow", "medium", "fast"]
+          },
+          "note": {
+            "type": "string",
+            "description": "导演意图说明"
+          }
+        }
+      }
+    },
+    "sceneIntents": {
+      "type": "array",
+      "description": "维度4：逐场景情绪意图",
+      "items": {
+        "type": "object",
+        "required": ["sceneId", "directorNote", "audienceDistance"],
+        "properties": {
+          "sceneId": { "type": "string" },
+          "directorNote": {
+            "type": "string",
+            "description": "导演意图，如 '让观众感受到主角的不甘，但又被现实压制'"
+          },
+          "audienceDistance": {
+            "type": "string",
+            "description": "观众距离设计：旁观者/共情者/窥视者"
+          }
+        }
+      }
+    },
+    "soundDesign": {
+      "type": "object",
+      "description": "维度5：声音与音乐方向",
+      "required": ["bgmDirection", "keyEffects", "silenceUsage"],
+      "properties": {
+        "bgmDirection": {
+          "type": "string",
+          "description": "如 '古琴为主，紧张段落加入鼓点'"
+        },
+        "keyEffects": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "关键音效列表"
+        },
+        "silenceUsage": {
+          "type": "string",
+          "description": "静默运用说明"
+        }
+      }
+    },
+    "turningPoints": {
+      "type": "array",
+      "description": "维度6：转折点",
+      "items": {
+        "type": "object",
+        "required": ["afterShot", "type", "description"],
+        "properties": {
+          "afterShot": {
+            "type": "integer",
+            "description": "在哪一镜之后"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["emotional", "plot", "visual"]
+          },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "transitions": {
+      "type": "array",
+      "description": "维度6：转场设计",
+      "items": {
+        "type": "object",
+        "required": ["fromScene", "toScene", "method", "emotionBridge"],
+        "properties": {
+          "fromScene": { "type": "string" },
+          "toScene": { "type": "string" },
+          "method": {
+            "type": "string",
+            "description": "切换方式：空镜过渡/叠化/硬切"
+          },
+          "emotionBridge": {
+            "type": "string",
+            "description": "情绪衔接说明"
+          }
+        }
+      }
+    }
+  }
+}

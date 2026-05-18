@@ -1,0 +1,84 @@
+# banana — Nano Banana 图像生成
+
+## 基本信息
+
+- **类型**：image
+- **模式**：text_to_image
+- **状态**：enabled
+
+## API 配置
+
+- **提交接口**：POST https://grsai.dakka.com.cn/v1/draw/nano-banana
+- **轮询接口**：POST https://grsai.dakka.com.cn/v1/draw/result
+- **API Key**：<your_api_key_here>
+
+## 提交接口
+
+**请求体**：
+
+```json
+{
+  "model": "nano-banana-2",
+  "prompt": "{prompt}",
+  "aspectRatio": "16:9",
+  "imageSize": "2K",
+  "urls": [],
+  "webHook": "-1",
+  "shutProgress": false
+}
+```
+
+**响应体**：
+
+```json
+{
+  "code": 0,
+  "msg": "success",
+  "data": {
+    "id": "id"
+  }
+}
+```
+
+取 `data.id` 作为任务 ID，用于轮询。
+
+## 轮询接口
+
+**请求方式**：POST
+
+**请求体**：
+
+```json
+{
+  "id": "{taskId}"
+}
+```
+
+**响应体**：
+
+```json
+{
+  "code": 0,
+  "msg": "success",
+  "data": {
+    "id": "xxxxx",
+    "results": [
+      {
+        "url": "https://example.com/example.png",
+        "content": "这是一只可爱的猫咪在草地上玩耍"
+      }
+    ],
+    "progress": 100,
+    "status": "succeeded",
+    "failure_reason": "",
+    "error": ""
+  }
+}
+```
+
+## 轮询说明
+
+- 每隔 5 秒请求一次，最多轮询 20 次
+- 请求体：`{"id": "{taskId}"}`
+- 成功标志：`status == "succeeded"`，取 `results[0].url`
+- 失败标志：`status == "failed"`，取 `failure_reason`

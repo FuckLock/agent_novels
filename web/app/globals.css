@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+:root {
+  --tf-bg-canvas: #f6f7f9;
+  --tf-bg-panel: #ffffff;
+  --tf-bg-raised: #fbfcfe;
+  --tf-bg-inverse: #14181f;
+  --tf-bg-inverse-raised: #1c2230;
+  --tf-text-primary: #18202a;
+  --tf-text-secondary: #5d6673;
+  --tf-text-muted: #8b94a1;
+  --tf-text-inverse: #f8fafc;
+  --tf-border-subtle: #e1e6ef;
+  --tf-border-strong: #c7d0dd;
+  --tf-accent-primary: #2563eb;
+  --tf-accent-primary-soft: #eaf1ff;
+  --tf-success: #17803d;
+  --tf-success-soft: #e8f6ee;
+  --tf-warning: #b66a00;
+  --tf-warning-soft: #fff4df;
+  --tf-danger: #c33a3a;
+  --tf-danger-soft: #fdecec;
+  --tf-info: #0e7490;
+  --tf-info-soft: #e6f7fb;
+  --tf-radius-sm: 6px;
+  --tf-radius-md: 8px;
+  --tf-radius-lg: 12px;
+  --tf-shadow-panel: 0 1px 2px rgb(20 24 31 / 0.06);
+}
+
+@theme inline {
+  --color-background: var(--tf-bg-canvas);
+  --color-foreground: var(--tf-text-primary);
+  --font-sans: "Geist", "Inter", "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--tf-bg-canvas);
+  color: var(--tf-text-primary);
+  font-family: var(--font-sans);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+html.toonflow-electron,
+html.toonflow-electron body {
+  height: 100%;
+  overflow: hidden;
+}
+
+html.toonflow-electron body {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-content {
+  min-width: 0;
+  min-height: 100vh;
+}
+
+html.toonflow-electron .app-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+html.toonflow-electron .app-content > .h-screen {
+  height: 100%;
+}
+
+html.toonflow-electron .app-content > .min-h-screen {
+  min-height: 100%;
+}
+
+.toonflow-scrollbar {
+  scrollbar-color: var(--tf-border-strong) transparent;
+  scrollbar-width: thin;
+}
+
+.toonflow-scrollbar::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+.toonflow-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--tf-border-strong);
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: content-box;
+}
+
+.toonflow-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}

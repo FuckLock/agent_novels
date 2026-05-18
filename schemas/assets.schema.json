@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SeedanceAssets",
+  "description": "统一资产数据源（合并原 manifest.json），存储位置：novels/{name}/seedance/assets.json",
+  "type": "array",
+  "items": {
+    "$ref": "#/$defs/SeedanceAsset"
+  },
+  "$defs": {
+    "SeedanceAsset": {
+      "type": "object",
+      "required": ["id", "name", "type", "description", "prompt", "artStyle", "state", "imagePath", "modelId", "resolution", "sourceEpisode", "episodeRefs", "createdAt", "updatedAt"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^(char|scene|prop)-\\d{3}$",
+          "description": "资产唯一标识，格式：char-001 / scene-001 / prop-001"
+        },
+        "name": {
+          "type": "string",
+          "description": "资产名称，如 '叶真'、'山门广场'"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["character", "scene", "prop"],
+          "description": "资产类型"
+        },
+        "description": {
+          "type": "string",
+          "description": "完整文字描述（来自 01-director.md）"
+        },
+        "identityAnchor": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 3,
+          "maxItems": 5,
+          "description": "角色资产必填（3~5个核心视觉关键词），用于分镜提示词中强制复用保证跨镜一致性。禁止包含情绪词、动作词、场景相关词。示例：['银发束冠少年', '白色长袍金边', '腰佩青锋剑']"
+        },
+        "prompt": {
+          "type": "string",
+          "description": "AI 图片生成提示词（由美术模板 + 描述生成）"
+        },
+        "artStyle": {
+          "type": "string",
+          "description": "引用的美术风格 ID，如 '3d-guoman'"
+        },
+        "state": {
+          "type": "string",
+          "enum": ["pending", "generating", "success", "failed"],
+          "description": "生成状态"
+        },
+        "imagePath": {
+          "type": "string",
+          "description": "相对路径，如 'images/characters/叶真.png'"
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "生成完成时间（ISO 8601）"
+        },
+        "apiTaskId": {
+          "type": "string",
+          "description": "远程 API 任务 ID，用于轮询"
+        },
+        "error": {
+          "type": "string",
+          "description": "失败原因"
+        },
+        "modelId": {
+          "type": "string",
+          "description": "使用的模型 ID，如 'doubao-seedance-4-5'"
+        },
+        "resolution": {
+          "type": "string",
+          "description": "分辨率，如 '1K'、'2K'"
+        },
+        "sourceEpisode": {
+          "type": "string",
+          "pattern": "^ep\\d{2}$",
+          "description": "首次出现的集，如 'ep01'"
+        },
+        "episodeRefs": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^ep\\d{2}$" },
+          "description": "所有引用该资产的集，如 ['ep01', 'ep02']"
+        },
+        "parentId": {
+          "type": "string",
+          "description": "衍生资产的父资产 ID"
+        },
+        "childIds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "子资产 ID 列表"
+        },
+        "derivativeType": {
+          "type": "string",
+          "enum": [
+            "makeup", "hairstyle", "underwear", "outerwear", "accessory", "pose", "emotion",
+            "shotSize", "timeOfDay", "weather"
+          ],
+          "description": "衍生类型：角色L1-L5层级变体或场景三维度变体"
+        },
+        "derivativeLayer": {
+          "type": "string",
+          "enum": ["L0", "L1", "L2", "L3", "L4", "L5"],
+          "description": "角色衍生层级标识"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "资产创建时间"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "最后更新时间"
+        }
+      }
+    }
+  }
+}
