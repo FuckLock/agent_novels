@@ -198,10 +198,11 @@
 - 回归：Project 列表、设置和 RuntimeCheck 仍正常。
 
 **完成证据**：
-- 关键文件 5/7（source-service / impact-service / source/route / chapters/route / SourceTab）实质等价完成。
-- **命名漂移**：影响图表名由计划的 `dependency_edges` 落地为 `dependency_invalidations`（语义更聚焦于 stale 标记），与上文【数据库表】段对照需注意命名差异；不修改既有表名，后续 Phase 引用以实际表名为准。
-- 路径漂移：路由层 `[projectId]` 段统一沿用 Phase 3 实际 `[name]` 命名。
-- 完成日期：2026-05-17 之前（推断自仓库代码现状）。
+- 关键文件 6/6 + UI 3/3 全部实质等价完成（source-service 299 行 / impact-service 74 行 / 4 个 API 路由 / 1 个 Tab + 2 个 Modal）。
+- **命名漂移**：影响图表名 `dependency_edges` → `dependency_invalidations`（语义更聚焦 stale 标记），D1 等价完成。
+- **路径漂移**：路由层 `[projectId]` → `[name]`，沿用 Phase 3 命名。
+- **schema.ts 漂移**：Phase 4 三表仅 migrations SQL 创建，service 层全 prepare(?) 参数化（不进 drizzle ORM）。
+- **PGE 倒查收口**：2026-05-18 完成（criteria/phase-4.md locked round=1；evaluator(criteria-alignment) round=1 直接 aligned；evaluator(implementation-review) passed 26/26 + 零代码修订 + 安全 7/8 + 端到端 curl/sqlite3 验证）。
 
 ---
 
