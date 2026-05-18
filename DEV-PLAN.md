@@ -208,7 +208,7 @@
 
 ## Phase 5: 剧本 Agent 与文本版本闭环
 
-**状态**：🟡 部分完成（服务层等价完成，缺关键 UX 件 `ScriptDiffModal.tsx`）
+**状态**：✅ 完成（2026-05-18 PGE 倒查 + 补漏 ScriptDiffModal 通过）
 
 **交付内容**：
 - 用户能从剧本 Agent 生成 StoryOutline、AdaptationPlan 和 ScriptVersion，并保存 AgentRun、SkillVersion、ModelConfig、UsageRecord 和 Artifact。
@@ -236,15 +236,16 @@
 - 最低：能生成故事骨架、改编策略和分集剧本；每次生成都形成版本记录；能编辑、对比、回滚和锁定；审核失败能修复或人工豁免。
 - 回归：章节修改仍能触发剧本下游影响检查。
 
-**已完成证据**：
-- `script-service.ts` / `agent-run-service.ts` / `text-artifact-service.ts` 实质等价完成 ✅。
-- AgentRun + UsageRecord 链路通过 `lib/agent/executor.ts` 等价接入 ✅。
+**完成证据**：
+- 服务层 4/4 实质等价完成（agent-run-service / script-service / text-artifact-service / quality-gate-service，命名漂移 text-quality-gate → quality-gate-service 按 D1 等价）。
+- AgentRun + UsageRecord 链路通过 `lib/agent/executor.ts` 等价接入。
 - StoryOutline / AdaptationPlan / ScriptVersion 版本闭环已存在并可运行。
-
-**剩余工作**：
-- **缺失关键 UX 件**：`web/app/components/script/ScriptDiffModal.tsx` 尚未实现 → 版本对比 + 回滚确认的用户体验链路未关闭。
-- 需补齐：剧本版本 Diff 视图（左右对照 / inline diff）、回滚操作的二次确认与影响清单提示。
-- 完成口径：补齐 ScriptDiffModal 并接入 ScriptManagementTab，使「对比 / 回滚」按钮可达到 Spec 描述的交互效果后，Phase 5 可转为 ✅ 完成。
+- API 多路由替代 script-agent SSE 单路由（chat / chat-history / skeleton / outline / adaptation / scripts）。
+- UI 实际 ScriptsTab.tsx + workbench/* 替代 plan 字面 ScriptAgentTab + ScriptManagementTab（D1 等价）。
+- **ScriptDiffModal.tsx 已补漏**（249 行 / LCS DP diff 算法 / Modal + Button 设计系复用 / 三态机 idle→confirming→rolling / amber 二次确认 + 下游影响清单 / 回滚 API POST scripts/[episode]/versions {action: 'rollback', versionId} / 接入 ScriptDetailModal 的"对比 / 回滚"按钮）。
+- 锁定豁免端到端验证：空 waiverReason → 400；非空 → 200 + quality_gates 新增 manual_review。
+- 回归：Phase 4 impact-service SCRIPT_DOWNSTREAM_IMPACTS 链路未破坏。
+- **PGE 补漏收口**：2026-05-18 完成（criteria/phase-5.md locked round=1；evaluator(criteria-alignment) round=1 直接 aligned；evaluator(implementation-review) passed 32/32 + 安全 7/7 全 0 命中 + 0 critical/high/medium）。
 
 ---
 

@@ -6,9 +6,10 @@ interface ButtonProps {
   disabled?: boolean;
   loading?: boolean;
   size?: 'sm' | 'md';
+  'aria-label'?: string;
 }
 
-export default function Button({ children, onClick, variant = 'primary', type = 'button', disabled, loading, size = 'md' }: ButtonProps) {
+export default function Button({ children, onClick, variant = 'primary', type = 'button', disabled, loading, size = 'md', 'aria-label': ariaLabel }: ButtonProps) {
   const variants = {
     primary: 'bg-[var(--tf-accent-primary)] hover:bg-blue-700 text-white border-transparent',
     secondary: 'bg-[var(--tf-bg-panel)] hover:bg-[var(--tf-bg-raised)] text-[var(--tf-text-primary)] border-[var(--tf-border-subtle)]',
@@ -27,6 +28,7 @@ export default function Button({ children, onClick, variant = 'primary', type = 
       type={type}
       onClick={onClick}
       disabled={isDisabled}
+      aria-label={ariaLabel}
       className={`inline-flex items-center justify-center gap-2 rounded-[var(--tf-radius-sm)] border font-medium transition ${sizes[size]} ${variants[variant]} ${isDisabled ? 'cursor-not-allowed opacity-50' : ''}`}
     >
       {loading && (

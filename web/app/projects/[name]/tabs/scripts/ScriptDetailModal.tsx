@@ -7,6 +7,7 @@ import { renderScriptLine, countChars, SKELETON_WIDTHS } from '../../utils/scrip
 import { parseScriptAssets } from '../../utils/scriptAssetParser';
 import Modal from '@/app/components/Modal';
 import Button from '@/app/components/Button';
+import ScriptDiffModal from '@/app/components/script/ScriptDiffModal';
 import LinkedAssets from './LinkedAssets';
 
 interface ScriptDetailModalProps {
@@ -110,6 +111,9 @@ export default function ScriptDetailModal({
 
   // 未保存确认弹窗
   const [showConfirm, setShowConfirm] = useState(false);
+
+  // 版本对比弹窗：选中要对比的基线版本（toVersion 固定为最新版）
+  const [diffFromVersionId, setDiffFromVersionId] = useState<string | null>(null);
 
   // 所有可选资产（从 outline 构建）
   const allAssets = useMemo(() => buildAllAssets(outline, assetCatalog), [outline, assetCatalog]);
@@ -447,17 +451,22 @@ export default function ScriptDetailModal({
                           {new Date(version.updatedAt).toLocaleString()} · {version.content.slice(0, 80)}
                         </p>
                       </div>
-                      <button
-                        disabled={versionActionLoading || version.versionNo === versions[0]?.versionNo}
-                        onClick={() => {
-                          if (window.confirm(`回滚到 v${version.versionNo}？`)) {
-                            runVersionAction({ action: 'rollback', versionId: version.id });
-                          }
-                        }}
-                        className="shrink-0 text-xs text-gray-500 hover:text-purple-700 disabled:text-gray-300"
-                      >
-                        回滚
-                      </button>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <button
+                          disabled={versionActionLoading || version.versionNo === versions[0]?.versionNo}
+                          onClick={() => setDiffFromVersionId(version.id)}
+                          className="text-xs text-gray-500 hover:text-purple-700 disabled:text-gray-300"
+                        >
+                          对比
+                        </button>
+                        <button
+                          disabled={versionActionLoading || version.versionNo === versions[0]?.versionNo}
+                          onClick={() => setDiffFromVersionId(version.id)}
+                          className="text-xs text-gray-500 hover:text-purple-700 disabled:text-gray-300"
+                        >
+                          回滚
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -592,6 +601,28 @@ export default function ScriptDetailModal({
           </div>
         </div>
       </div>
+
+      {/* 版本对比弹窗（D7 接入点：fromVersion=选中历史版本，toVersion=当前最新版） */}
+      {diffFromVersionId && versions.length > 0 && (() => {
+        const fromVersion = versions.find((v) => v.id === diffFromVersionId);
+        const toVersion = versions[0];
+        if (!fromVersion || !toVersion) return null;
+        return (
+          <ScriptDiffModal
+            isOpen={true}
+            encodedName={encodedName}
+            episode={episode}
+            fromVersion={fromVersion}
+            toVersion={toVersion}
+            onClose={() => setDiffFromVersionId(null)}
+            onRolledBack={() => {
+              setDiffFromVersionId(null);
+              loadData();
+              onSaved();
+            }}
+          />
+        );
+      })()}
 
       {/* 未保存确认弹窗 */}
       <Modal
