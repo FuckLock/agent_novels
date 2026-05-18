@@ -72,6 +72,11 @@ export default function RuntimeCheckPanel({ runtimeCheck, loading, error, onRefr
           <p className="mt-1 text-xs text-[var(--tf-text-muted)]">
             最近检查 {formatTime(runtimeCheck?.completedAt)}
           </p>
+          {runtimeCheck && (
+            <p className="mt-1 text-xs text-[var(--tf-text-muted)]">
+              通过 {runtimeCheck.summary.passed} · 提醒 {runtimeCheck.summary.warning} · 失败 {runtimeCheck.summary.failed}
+            </p>
+          )}
         </div>
         <Button variant="secondary" size="sm" onClick={onRefresh} loading={loading}>
           <RefreshCw className="h-4 w-4" />

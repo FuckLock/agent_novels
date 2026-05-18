@@ -53,6 +53,18 @@ export async function ensureSchema() {
   await fs.mkdir(env.artifactsRoot, { recursive: true });
 
   const db = getSqlite();
+  db.exec(
+    `CREATE TABLE IF NOT EXISTS schema_migrations (
+      id TEXT PRIMARY KEY,
+      migration_id TEXT NOT NULL UNIQUE,
+      schema_version INTEGER NOT NULL,
+      status TEXT NOT NULL,
+      details_json TEXT NOT NULL,
+      applied_at INTEGER NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    )`,
+  );
   db.transaction(() => {
     for (const migration of migrations) {
       const existing = db

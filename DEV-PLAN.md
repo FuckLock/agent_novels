@@ -12,6 +12,41 @@
 
 ---
 
+## 当前进度
+
+> 进度同步日期：2026-05-17
+> 修订原因：代码已超前 plan（Phase 2-6 等价实现已存在但未走 PGE 双循环），本次同步进度并明确剩余工作。
+> 下一 PGE 目标：Phase 2（先以 PGE 双循环倒查正式收口，消除「先入库后审计」隐患）。
+
+| Phase | 主题 | 状态 | 备注 |
+| --- | --- | --- | --- |
+| Phase 1 | 安全基线与 Web Shell | ✅ 完成 | commit b4e69de PGE 双循环通过（2026-05-17） |
+| Phase 2 | 后端数据层与 Artifact 仓库 | ✅ 完成 | 关键文件 8/8，由旧业务代码批量入库，未走 PGE 验证；建议 PGE 倒查正式收口 |
+| Phase 3 | Project、访问控制与模型配置 | ✅ 完成 | 关键文件 6/7；存在 `[projectId]→[name]` 路由命名漂移 |
+| Phase 4 | SourceDocument 与 Chapter 管理 | ✅ 完成 | 关键文件 5/7；命名漂移：`dependency_edges` → `dependency_invalidations` 等 |
+| Phase 5 | 剧本 Agent 与文本版本闭环 | 🟡 部分完成 | 服务层等价完成；缺关键 UX 件 `ScriptDiffModal.tsx` |
+| Phase 6 | 资产塑造、AssetVersion 与跨集 IP 时间线 | 🟡 部分完成 | 资产 CRUD/版本/时间线完成；`asset-generation-service.ts` 仍为 17 行 stub |
+| Phase 7 | A→C3 制作管线与自动运行视图 | 🟡 部分完成 | seedance 体系覆盖 A→C3 节点产物；剩余通用抽象层 + `~sd auto` + auto-run 大屏 + AutoRunEventStream |
+| Phase 8 | D 阶段 TrackPlan、策略决策与路径 5 | ⏳ 待开始 | — |
+| Phase 9 | 任务队列、ProductionFrame、视频 Take 与成本记录 | ⏳ 待开始 | — |
+| Phase 10 | 质量门禁与 Take 审核 | ⏳ 待开始 | `TakeDeliveryTab.tsx` 壳存在但内容空 |
+| Phase 11 | E 粗剪交付、AudioSubtitlePlan 与 EpisodeDeliveryPackage | ⏳ 待开始 | — |
+| Phase 12 | 任务中心、恢复对账与成本复盘 | ⏳ 待开始 | `tasks/page.tsx` 壳存在但内容空 |
+| Phase 13 | 治理能力、迁移包与安全删除 | ⏳ 待开始 | — |
+| Phase 14 | 辅助智能能力收口 | ⏳ 待开始 | — |
+| Phase 15 | Electron 壳、打包与端到端闭环 | ⏳ 待开始 | `electron/main.ts` + `preload.ts` 壳存在但配套页面 + E2E 缺 |
+
+**状态语义**：
+- ✅ 完成：核心交付物等价实现，PGE 双循环通过（或将通过 Phase 2 倒查方式补审计）。
+- 🟡 部分完成：主体交付物已实现，但存在明确未完成项（见对应 Phase 的【剩余工作】段）。
+- ⏳ 待开始：尚未进入开发，原计划内容保留。
+
+**命名漂移处理原则**（D1）：
+- 实质功能等价 → 标 ✅，在【完成证据】注明实际路径差异。
+- 缺关键 UX 件或仍为 stub → 标 🟡，在【剩余工作】明确未完成项。
+
+---
+
 ## 功能依赖图
 
 1. 技术安全基线与 Web Shell → 所有页面、API、Electron 壳。
@@ -27,6 +62,8 @@
 ---
 
 ## Phase 1: 安全基线与 Web Shell
+
+**状态**：✅ 完成（commit b4e69de PGE 双循环通过 2026-05-17）
 
 **交付内容**：
 - 升级并固定 Web 运行依赖，消除 `next@15.5.14` 低于 2026 年 5 月安全修复线的风险。
@@ -53,9 +90,17 @@
 - 最低：`npm run build --prefix web` 通过；`npm run dev:web` 能打开 Web UI；项目列表、任务中心、设置入口可点击切换；状态徽章不溢出。
 - 回归：旧 `web/app/projects/[name]` 页面仍可通过路由访问，不直接改写 `novels/`。
 
+**完成证据**：
+- commit b4e69de — PGE 双循环（criteria-alignment + implementation-review）已通过。
+- 完成日期：2026-05-17（推断自 plan 同步日期与 commit 节点）。
+- 实际产出文件均落位于 `web/app/components/layout/`、`web/app/components/ui/` 等设计的目录，路径与计划一致。
+- 依赖版本固化在 `web/package.json` + `web/package-lock.json`，符合 Phase 1 安全基线。
+
 ---
 
 ## Phase 2: 后端数据层与 Artifact 仓库
+
+**状态**：✅ 完成（关键文件 8/8，2026-05-17 之前由旧业务代码批量入库，未走 PGE 验证——本次 plan 修订后建议用 PGE 倒查正式收口）
 
 **交付内容**：
 - 建立 SQLite + Drizzle 数据层，创建 schemaVersion、migration 记录和对象基础表。
@@ -82,9 +127,17 @@
 - 最低：首次启动能创建数据库和 dataRoot；设置页显示 dataRoot、数据库位置、Artifact 仓库状态和 RuntimeCheck；失败项有明确修复入口。
 - 回归：项目仍不直接读取或写入 `novels/` 作为新业务数据源。
 
+**完成证据**：
+- 关键文件 8/8 均已落盘（含 `env.ts` / `db/client.ts` / `db/schema.ts` / `db/migrate.ts` / `artifacts/store.ts` / `runtime/runtime-check.ts` / `api/system/runtime-check/route.ts` / `settings/page.tsx`）。
+- 入库路径：旧业务代码批量入库，未经过 PGE 双循环 criteria-alignment + implementation-review 两步审计。
+- 完成日期：2026-05-17 之前（具体 commit 待 Phase 2 倒查时补回）。
+- **审计缺口**：未生成 `.claude/criteria/phase-2-*.md` locked criteria，未走 evaluator 双 stage。建议触发 PGE 双循环对已落盘代码做倒查（draft-criteria → criteria-alignment → implementation-review）正式收口。
+
 ---
 
 ## Phase 3: Project、访问控制与模型配置
+
+**状态**：✅ 完成（关键文件 6/7，存在 `[projectId]→[name]` 路由命名漂移；按 D1 原则等价完成）
 
 **交付内容**：
 - 实现 Project 创建、列表、详情入口、非法名称校验、revision 和软删除状态。
@@ -111,9 +164,17 @@
 - 最低：能创建 Project；刷新后仍可见；重名、空名、非法字符有错误；设置页能新增模型供应商并测试连接；非 localhost 访问没有访问凭据时被拦截。
 - 回归：RuntimeCheck 和 dataRoot 显示仍正常。
 
+**完成证据**：
+- 关键文件 6/7（service / access-control / model-registry / skill-registry / settings page / app page）实质等价完成。
+- **路由命名漂移**：原计划 `web/app/api/projects/[projectId]/route.ts`，实际落位为 `web/app/api/projects/[name]/route.ts`（参数名 `name` 替代 `projectId`，功能等价）。
+- 完成日期：2026-05-17 之前（推断自仓库代码现状）。
+- 后续如要统一参数命名（按 Spec 用 `projectId` 还是接受 `name` 等价），需要在 Phase 5+ 的 API 设计中保持一致；本次不动既有实现。
+
 ---
 
 ## Phase 4: SourceDocument 与 Chapter 管理
+
+**状态**：✅ 完成（关键文件 5/7，命名漂移：`dependency_edges` → `dependency_invalidations` 等；按 D1 原则等价完成）
 
 **交付内容**：
 - 用户能粘贴或上传 `.txt` 原文，系统保存 SourceDocument 和 Artifact。
@@ -136,9 +197,17 @@
 - 最低：支持 `.txt` 与粘贴导入；章节解析结果可人工调整；章节编辑产生 revision；保存前能看到受影响下游清单。
 - 回归：Project 列表、设置和 RuntimeCheck 仍正常。
 
+**完成证据**：
+- 关键文件 5/7（source-service / impact-service / source/route / chapters/route / SourceTab）实质等价完成。
+- **命名漂移**：影响图表名由计划的 `dependency_edges` 落地为 `dependency_invalidations`（语义更聚焦于 stale 标记），与上文【数据库表】段对照需注意命名差异；不修改既有表名，后续 Phase 引用以实际表名为准。
+- 路径漂移：路由层 `[projectId]` 段统一沿用 Phase 3 实际 `[name]` 命名。
+- 完成日期：2026-05-17 之前（推断自仓库代码现状）。
+
 ---
 
 ## Phase 5: 剧本 Agent 与文本版本闭环
+
+**状态**：🟡 部分完成（服务层等价完成，缺关键 UX 件 `ScriptDiffModal.tsx`）
 
 **交付内容**：
 - 用户能从剧本 Agent 生成 StoryOutline、AdaptationPlan 和 ScriptVersion，并保存 AgentRun、SkillVersion、ModelConfig、UsageRecord 和 Artifact。
@@ -166,9 +235,21 @@
 - 最低：能生成故事骨架、改编策略和分集剧本；每次生成都形成版本记录；能编辑、对比、回滚和锁定；审核失败能修复或人工豁免。
 - 回归：章节修改仍能触发剧本下游影响检查。
 
+**已完成证据**：
+- `script-service.ts` / `agent-run-service.ts` / `text-artifact-service.ts` 实质等价完成 ✅。
+- AgentRun + UsageRecord 链路通过 `lib/agent/executor.ts` 等价接入 ✅。
+- StoryOutline / AdaptationPlan / ScriptVersion 版本闭环已存在并可运行。
+
+**剩余工作**：
+- **缺失关键 UX 件**：`web/app/components/script/ScriptDiffModal.tsx` 尚未实现 → 版本对比 + 回滚确认的用户体验链路未关闭。
+- 需补齐：剧本版本 Diff 视图（左右对照 / inline diff）、回滚操作的二次确认与影响清单提示。
+- 完成口径：补齐 ScriptDiffModal 并接入 ScriptManagementTab，使「对比 / 回滚」按钮可达到 Spec 描述的交互效果后，Phase 5 可转为 ✅ 完成。
+
 ---
 
 ## Phase 6: 资产塑造、AssetVersion 与跨集 IP 时间线
+
+**状态**：🟡 部分完成（资产 CRUD / 版本 / 跨集时间线已完成，`asset-generation-service.ts` 仍为 17 行 stub）
 
 **交付内容**：
 - 用户能管理角色、场景、道具、服装/妆造资产，支持搜索、类型筛选、新增、详情编辑、软删除和同名去重提示。
@@ -193,9 +274,23 @@
 - 最低：资产支持新增、筛选、详情编辑、软删除；每次上传或生成都形成 AssetVersion；canonicalVersion 由用户确认；跨集时间线能按类型、集数和一致性状态筛选。
 - 回归：剧本详情里的资产关联仍能保存并触发下游影响检查。
 
+**已完成证据**：
+- 资产 CRUD / AssetVersion / canonicalVersion 选择已完成 ✅。
+- 跨集 IP 资产时间线 API 与独立大屏页面已落盘 ✅。
+- AssetsTab + AssetVersionDrawer 已具备基本展示能力 ✅。
+
+**剩余工作**：
+- **`web/app/lib/server/assets/asset-generation-service.ts` 仅 17 行 stub**，未真实接入提示词润色 / 图片任务提交 / AssetVersion 候选写回链路。
+- 两种收口路径（择一执行）：
+  1. **真实化路径**：在 `asset-generation-service.ts` 内实现完整提示词模板 + 图片任务投递 + 版本候选回写 + AgentRun / UsageRecord 写入。
+  2. **抽取路径**：显式将 `seedance/assets/*` 的资产生成逻辑抽取到通用 `generation-service` 抽象层（与 Phase 7 通用抽象层共享），由 `asset-generation-service.ts` 作为 thin wrapper 调用。
+- 完成口径：任一路径落地、并经 PGE 双循环 implementation-review 通过后，Phase 6 转为 ✅ 完成。
+
 ---
 
 ## Phase 7: A→C3 制作管线与自动运行视图
+
+**状态**：🟡 部分完成（seedance 体系已覆盖 A→C3 节点产物，剩余通用抽象层 + `~sd auto` 编排 + auto-run 大屏 5 种模式 + AutoRunEventStream）
 
 **交付内容**：
 - 用户能在制作工作台查看 A/B/C1/C2/C3/D/E 七节点状态，并查看 DirectorAnalysis、DirectorPlan、Storyboard、PromptPack、TrackPlan 产物。
@@ -223,9 +318,24 @@
 - 最低：A→C3 能顺序执行并写入对象和 Artifact；blocked/failed 自动暂停；自动管线运行视图能显示模式 1-5；C3 完成后出现 D 提交确认入口。
 - 回归：制作工作台手动逐阶段入口仍可用。
 
+**已完成证据**：
+- seedance 体系已覆盖 A→C3 各节点产物（DirectorAnalysis / DirectorPlan / Storyboard / PromptPack / TrackPlan）的具体实现 ✅。
+- 各节点产物可经由 seedance 流程产出 Artifact 与对象记录 ✅。
+- 制作工作台手动逐阶段入口在 ProductionTab 中有基础呈现 ✅。
+
+**剩余工作**：
+- **通用 pipeline-service 抽象层缺失**：seedance 各节点目前散落、缺少统一的 `web/app/lib/server/pipeline/pipeline-service.ts` 抽象（A-E 节点状态机 + 产物索引）。
+- **`~sd auto` 编排器缺失**：缺 `web/app/lib/server/pipeline/auto-run-service.ts`（A→B→C1→C2→C3 顺序执行 + 暂停 / 恢复 / 跳过 / 终止）。
+- **auto-run 独立大屏缺失**：缺 `web/app/projects/[name]/auto-run/page.tsx`（5 种模式展示 / 阶段进度 / 产物摘要 / Agent 日志 / Token 成本 / 人工介入面板）。
+- **`AutoRunEventStream` 组件缺失**：缺 `web/app/components/pipeline/AutoRunEventStream.tsx`（Agent 日志与任务事件流）。
+- 完成口径：以上 4 项落地，配合 `api/projects/[name]/pipeline/route.ts` + `auto-run/route.ts` 经 PGE 双循环 implementation-review 通过后，Phase 7 转为 ✅ 完成。
+- 注：可考虑与 Phase 6【剩余工作】中的「抽取路径」共享 generation-service 抽象层。
+
 ---
 
 ## Phase 8: D 阶段 TrackPlan、策略决策与路径 5
+
+**状态**：⏳ 待开始
 
 **交付内容**：
 - 用户能展开 Track 和 TrackSegment，编辑时间段、画面目标、动作、镜头、嘴型、情绪和参考资产。
@@ -253,6 +363,8 @@
 ---
 
 ## Phase 9: 任务队列、ProductionFrame、视频 Take 与成本记录
+
+**状态**：⏳ 待开始
 
 **交付内容**：
 - 系统能按策略生成或复用首帧、尾帧、多关键帧和上一段尾帧，形成 ProductionFrame 并锁定引用。
@@ -284,6 +396,8 @@
 
 ## Phase 10: 质量门禁与 Take 审核
 
+**状态**：⏳ 待开始（`TakeDeliveryTab.tsx` 壳存在但内容空）
+
 **交付内容**：
 - QualityGate 覆盖 ScriptVersion、AssetVersion、ProductionFrame、Take 和 RoughCut，记录 metric、scope、denominator、passedCount、failedItems、confidence、samplingRule、reviewSource、operatorDecision 和 waiverReason。
 - 用户能在 Take 审核面板预览多个 take，按动作不对、角色漂移、构图不对、嘴型不对、时长不对、道具缺失、合规失败发起重试。
@@ -312,6 +426,8 @@
 
 ## Phase 11: E 粗剪交付、AudioSubtitlePlan 与 EpisodeDeliveryPackage
 
+**状态**：⏳ 待开始
+
 **交付内容**：
 - 系统只读取 locked take 组装 RoughCut，未锁定 Track 显示为缺口。
 - 系统按 TrackSegment 生成 AudioSubtitlePlan，记录旁白、台词、嘴型、音效、字幕时间段和后续导出入口。
@@ -338,6 +454,8 @@
 
 ## Phase 12: 任务中心、恢复对账与成本复盘
 
+**状态**：⏳ 待开始（`tasks/page.tsx` 壳存在但内容空）
+
 **交付内容**：
 - 用户能在任务中心查看本地 Task、远端 providerJobId、恢复状态、重试次数、成本、失败原因和操作入口。
 - 系统能根据 Task、providerJobId 和 Artifact 状态恢复远端任务结果，标记 orphaned、reconciled、failed、reconciling 和 duplicate_blocked。
@@ -363,6 +481,8 @@
 ---
 
 ## Phase 13: 治理能力、迁移包与安全删除
+
+**状态**：⏳ 待开始
 
 **交付内容**：
 - 用户能只读扫描旧 `novels/`，预览章节、配置、脚本、资产、review、seedance 产物和任务记录，确认后导入为新对象记录。
@@ -391,6 +511,8 @@
 
 ## Phase 14: 辅助智能能力收口
 
+**状态**：⏳ 待开始
+
 **交付内容**：
 - 实现 Agent 记忆查看、确认、清空和近期上下文恢复，不让导入文本越权成为系统指令。
 - 实现章节事件图谱提取和召回，用于剧本改编时增强上下文，但不替代 SourceDocument / Chapter 主记录。
@@ -418,6 +540,8 @@
 ---
 
 ## Phase 15: Electron 壳、打包与端到端闭环
+
+**状态**：⏳ 待开始（`electron/main.ts` + `preload.ts` 壳存在但配套页面 + E2E 缺）
 
 **交付内容**：
 - Electron 只负责启动同一套 HTTP Web 服务和打开窗口，不形成独立业务逻辑或独立数据路径。
