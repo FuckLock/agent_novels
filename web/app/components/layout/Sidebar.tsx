@@ -33,17 +33,26 @@ export default function Sidebar() {
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
+          if (active) {
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                title={item.label}
+                aria-current="page"
+                className="flex h-[54px] w-[54px] flex-col items-center justify-center gap-1 rounded-[var(--tf-radius-md)] text-[11px] font-medium transition bg-[var(--tf-accent-primary-soft)] text-[var(--tf-accent-primary)]"
+              >
+                <Icon className="h-5 w-5" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          }
           return (
             <Link
               key={item.href}
               href={item.href}
               title={item.label}
-              aria-current={active ? 'page' : undefined}
-              className={`flex h-[54px] w-[54px] flex-col items-center justify-center gap-1 rounded-[var(--tf-radius-md)] text-[11px] font-medium transition ${
-                active
-                  ? 'bg-[var(--tf-accent-primary-soft)] text-[var(--tf-accent-primary)]'
-                  : 'text-[var(--tf-text-secondary)] hover:bg-[var(--tf-bg-raised)] hover:text-[var(--tf-text-primary)]'
-              }`}
+              className="flex h-[54px] w-[54px] flex-col items-center justify-center gap-1 rounded-[var(--tf-radius-md)] text-[11px] font-medium transition text-[var(--tf-text-secondary)] hover:bg-[var(--tf-bg-raised)] hover:text-[var(--tf-text-primary)]"
             >
               <Icon className="h-5 w-5" />
               <span>{item.label}</span>
