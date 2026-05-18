@@ -13,7 +13,7 @@ import {
   generateImage,
   downloadImage,
 } from '@/app/lib/ai-client';
-import { recordAssetGenerationSnapshot } from '@/app/lib/server/assets/asset-generation-service';
+import { recordAssetGenerationSnapshot, submitAssetImageTask } from '@/app/lib/server/assets/asset-generation-service';
 import { enforceAccess } from '@/app/lib/server/security/access-control';
 import type { ModelConfig } from '@/app/lib/novels';
 import type { SeedanceAsset } from '@/app/projects/[name]/types';
@@ -152,6 +152,17 @@ async function processOneAsset(
       await recordAssetGenerationSnapshot(projectName).catch((err) => {
         console.warn('同步资产图片版本失败:', err);
       });
+      await submitAssetImageTask(projectName, asset.id, {
+        imagePath: relativePath,
+        imageUrl: result.imageUrl,
+        prompt: finalPrompt,
+        modelId: model.modelId,
+        resolution,
+        apiTaskId: result.taskId,
+        state: 'success',
+      }).catch((err) => {
+        console.warn('归档图片生成 AgentRun 失败:', err);
+      });
       return true;
     } else {
       // 生成失败
@@ -167,6 +178,18 @@ async function processOneAsset(
       ]);
       await recordAssetGenerationSnapshot(projectName).catch((err) => {
         console.warn('同步资产失败版本失败:', err);
+      });
+      await submitAssetImageTask(projectName, asset.id, {
+        imagePath: '',
+        imageUrl: '',
+        prompt: finalPrompt,
+        modelId: model.modelId,
+        resolution,
+        apiTaskId: result.taskId,
+        state: 'failed',
+        error: result.error || '图片生成失败',
+      }).catch((err) => {
+        console.warn('归档图片生成失败 AgentRun 失败:', err);
       });
       return false;
     }

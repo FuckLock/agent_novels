@@ -46,3 +46,7 @@ config/models/**/*.md
 # Large external assets (managed externally)
 novels/造化之门/
 web/Toonflow-app/
+
+# PGE e2e test temporary projects (created by curl during phase testing)
+novels/phase*-e2e-*/
+novels/phase*-smoke-*/

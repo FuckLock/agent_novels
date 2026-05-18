@@ -251,7 +251,7 @@
 
 ## Phase 6: 资产塑造、AssetVersion 与跨集 IP 时间线
 
-**状态**：🟡 部分完成（资产 CRUD / 版本 / 跨集时间线已完成，`asset-generation-service.ts` 仍为 17 行 stub）
+**状态**：✅ 完成（2026-05-18 PGE 倒查 + 补漏 asset-generation-service.ts 真实化通过）
 
 **交付内容**：
 - 用户能管理角色、场景、道具、服装/妆造资产，支持搜索、类型筛选、新增、详情编辑、软删除和同名去重提示。
@@ -276,17 +276,19 @@
 - 最低：资产支持新增、筛选、详情编辑、软删除；每次上传或生成都形成 AssetVersion；canonicalVersion 由用户确认；跨集时间线能按类型、集数和一致性状态筛选。
 - 回归：剧本详情里的资产关联仍能保存并触发下游影响检查。
 
-**已完成证据**：
-- 资产 CRUD / AssetVersion / canonicalVersion 选择已完成 ✅。
-- 跨集 IP 资产时间线 API 与独立大屏页面已落盘 ✅。
-- AssetsTab + AssetVersionDrawer 已具备基本展示能力 ✅。
-
-**剩余工作**：
-- **`web/app/lib/server/assets/asset-generation-service.ts` 仅 17 行 stub**，未真实接入提示词润色 / 图片任务提交 / AssetVersion 候选写回链路。
-- 两种收口路径（择一执行）：
-  1. **真实化路径**：在 `asset-generation-service.ts` 内实现完整提示词模板 + 图片任务投递 + 版本候选回写 + AgentRun / UsageRecord 写入。
-  2. **抽取路径**：显式将 `seedance/assets/*` 的资产生成逻辑抽取到通用 `generation-service` 抽象层（与 Phase 7 通用抽象层共享），由 `asset-generation-service.ts` 作为 thin wrapper 调用。
-- 完成口径：任一路径落地、并经 PGE 双循环 implementation-review 通过后，Phase 6 转为 ✅ 完成。
+**完成证据**：
+- 资产 CRUD / AssetVersion / canonicalVersion 选择已完成。
+- 跨集 IP 资产时间线 API 与独立大屏页面已落盘（appearanceType: new/reuse/variant/drift_risk/canonical_mismatch + 风险三级）。
+- AssetsTab + AssetVersionDrawer + assets/ 8 个子组件齐全。
+- **asset-generation-service.ts 已真实化**（17 行 stub → **366 行**，2026-05-18 完成）：
+  - 选**路径 A 真实化**（不破坏 seedance/assets/* 现有逻辑）
+  - 3 组真实业务函数：runAssetPromptPolish（润色归档）+ submitAssetImageTask（图片任务归档）+ createAssetVersionCandidate（候选落库 helper）
+  - 接入 AgentRun + UsageRecord + Artifact 链路（recordAgentRun + attachAgentRunOutput + writeArtifact）
+  - 调用点切换：batch-polish/batch-generate route.ts 已 import 并调用真实化函数（D6 豁免未触发）
+  - 全程 try/catch 容错（不破坏 .catch 兼容调用点）
+- 端到端 curl 验证：batch-polish 触发后 agent_runs 表新增 asset.prompt.polish 行 + asset_versions 新增 prompt_candidate 候选行。
+- **PGE 补漏收口**：criteria/phase-6.md locked round=1；evaluator(criteria-alignment) round=1 直接 aligned；evaluator(implementation-review) passed 32/34（2 项 🟡 Medium 历史遗留 + 灰区，不阻塞：agent_run.status 失败语义校准 / 项目整体缺测试基建）。
+- ⚠️ generator(implement) socket 异常断开但代码已落盘，由 evaluator 独立完成 tsc/build/curl/sqlite3 全量验证。
 
 ---
 

@@ -7,7 +7,7 @@ import {
   getArtTemplate,
 } from '@/app/lib/novels';
 import { callLanguageModel, getModels } from '@/app/lib/ai-client';
-import { recordAssetPromptSnapshot } from '@/app/lib/server/assets/asset-generation-service';
+import { recordAssetPromptSnapshot, runAssetPromptPolish } from '@/app/lib/server/assets/asset-generation-service';
 import { enforceAccess } from '@/app/lib/server/security/access-control';
 import type { SeedanceAsset } from '@/app/projects/[name]/types';
 
@@ -102,6 +102,17 @@ async function processSingleAsset(
   await recordAssetPromptSnapshot(projectName).catch((err) => {
     console.warn('同步资产提示词版本失败:', err);
   });
+  await runAssetPromptPolish(projectName, asset.id, {
+    prompt,
+    artStyle: parsedArtStyle,
+    modelId,
+    templateName: templateFile,
+    systemPrompt,
+    userMessage,
+    promptState: 'completed',
+  }).catch((err) => {
+    console.warn('归档提示词润色 AgentRun 失败:', err);
+  });
   return true;
 }
 
@@ -136,6 +147,16 @@ async function processPolishBatch(
           ]);
           await recordAssetPromptSnapshot(projectName).catch((syncError) => {
             console.warn('同步资产提示词失败版本失败:', syncError);
+          });
+          await runAssetPromptPolish(projectName, asset.id, {
+            prompt: '',
+            artStyle: '',
+            modelId,
+            templateName: TYPE_TO_TEMPLATE[asset.type],
+            promptState: 'failed',
+            promptError: errorMsg,
+          }).catch((archiveErr) => {
+            console.warn('归档润色失败 AgentRun 失败:', archiveErr);
           });
           return { id: asset.id, ok: false };
         }
