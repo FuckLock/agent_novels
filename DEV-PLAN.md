@@ -453,7 +453,7 @@
 
 ## Phase 10: 质量门禁与 Take 审核
 
-**状态**：⏳ 待开始（`TakeDeliveryTab.tsx` 壳存在但内容空）
+**状态**：✅ 完成（2026-05-18 PGE 倒查扩展 + 补漏 + 纯新开发混合通过，6 新建 + 3 修改）
 
 **交付内容**：
 - QualityGate 覆盖 ScriptVersion、AssetVersion、ProductionFrame、Take 和 RoughCut，记录 metric、scope、denominator、passedCount、failedItems、confidence、samplingRule、reviewSource、operatorDecision 和 waiverReason。
@@ -478,6 +478,42 @@
 **验收标准**：
 - 最低：Take 列表支持接受、重试、替换、标记问题和锁定；质量门禁失败时不能锁定；人工豁免必须记录 Operator、原因、影响范围和时间。
 - 回归：D 任务网格里 take 状态与审核面板一致。
+
+**完成证据**：
+- **混合 phase**（倒查扩展 + 补漏 + 纯新开发）：6 新建 + 3 修改 + Schema 9→10（2026-05-18 完成）
+  - `video-quality-protocol.ts` (234 行)：6 维质量协议（spec L70）+ 7 类问题枚举（spec L553/L598/L865）
+    - 6 维: character_consistency / composition / motion_readability / lip_sync / cross_shot_continuity / compliance
+    - 7 类问题: action_mismatch / character_drift / composition_wrong / lip_sync_wrong / duration_wrong / props_missing / compliance_failed
+    - 8 协议字段（spec L102）：metric / scope / denominator / passedCount / failedItems / confidence / samplingRule / reviewSource
+    - evaluateVideoQuality + VIDEO_QUALITY_PROTOCOL_META + 3 个 REVIEW_SOURCES（agent_self_review / manual_review / ai_assisted_manual）
+  - `quality-gate-service.ts` (扩展 +273 -0，123→396 行)：**Phase 5 全 5 个导出函数逐字保留**（0 删除）+ 新增 recordVideoQualityGate / recordManualReview / waiveQualityGate（4 字段强制 throw on empty）/ getQualityStatus
+  - `api/projects/[name]/quality-gates/route.ts` (322 行)：GET 过滤 + POST 4 动作（pass/approve/reject/waive）+ PATCH + enforceAccess + waive 4 字段强制校验（operator/reason/scope/timestamp）
+  - `api/projects/[name]/takes/[takeId]/route.ts` (354 行)：GET + POST 5 操作（accept/retry/replace/lock/mark_issue）+ **lock 前置 quality_status 校验 → 不为 passed/waived 时 HTTP 422 + "quality gate not passed"**
+  - `QualityGatePanel.tsx` (133 行)：6 维度可见 + 分母 + 通过数 + 通过率 + failedItems + waiverReason + amber/red 警示
+  - `TakeReviewPanel.tsx` (200 行)：深色媒体面板（var(--tf-bg-inverse) + aspect-video + Film icon 占位）+ 候选 take + 7 类问题 dropdown 重试
+  - `TakeDeliveryTab.tsx` 真实化（117 → 246 行）：接入 QualityGatePanel + TakeReviewPanel + locked take 列表 + fetch takes/quality-gates API
+  - `migrations/phase10.ts` (50 行)：ALTER quality_gates 加 take_id/track_id/episode_index/operator_id/task_id + ALTER takes 加 quality_status/locked/locked_at/locked_by + 4 个索引
+- **9 关键硬约束独立验证全部 PASS**:
+  1. 6 维 + 7 类问题字面量精确匹配 spec
+  2. D4 锁定前校验真实生效（route.ts L236-249 + error 含 'quality'）
+  3. E4 waive 4 字段真写入（SQLite SELECT 实测 ALL_FOUR_FIELDS_OK + 三个 4xx 路径：空 reason / 空 operatorId / 空 scope）
+  4. K3 AI 初筛 + 人工确认双轨（SQLite SELECT DISTINCT review_source = 2: agent_self_review + manual_review）
+  5. C1+C7 Phase 5 不破坏（git diff +273 -0 = 0 删除 + 文件 396 行 ≤ 400 + diff 273 行 ≤ 280）
+  6. H1-H7 Phase 1-9 git diff = 0（seedance / Phase 8 / Phase 9 全部空输出）
+  7. L1+L2+L3 禁动 novels（反向 grep = 0 + 12 顶层目录完整）
+  8. F7 TakeDeliveryTab 真实化（117 → 246 行 + 接入两个 Panel）
+  9. I1 编译零错 + 0 @ts-ignore
+- **MVP 降级（criteria 允许）**：
+  - K1 video-quality-protocol 协议定义 only（静态默认值不调真实 AI，spec L102 允许）
+  - TakeReviewPanel 完整视频播放 Film icon 占位（Phase 11+ 接入）
+  - QualityGatePanel confidence 数值条等增强 UX 留 Phase 11+
+- 端到端（mock + TOONFLOW_DATA_DIR=/tmp/toonflow-phase10-test-{ts}）：
+  · POST lock unchecked → 422 + 错误信息正确
+  · POST waive 完整 4 字段 → SQLite 全写入；空 reason/operatorId/scope → 4xx
+  · pass + approve 同 take → DISTINCT review_source = 2
+  · 回归 tracks/takes/path5/tasks/projects → 200
+- spec 一致：L70/L86-89/L102/L319/L335-336/L446/L449/L553/L598/L600/L609/L691/L765/L865 全部对齐。
+- **PGE 收口**：criteria/phase-10.md locked round=1（65 条 12 段 + 9 硬约束）；evaluator(criteria-alignment) round=1 直接 aligned（连续 9 phase 一次过）；evaluator(implementation-review) passed 64/65（1 项 J 静态豁免 criteria 明文允许 + 1 项 pnpm audit ⏭ 跳过；0 critical/high/medium/low）。
 
 ---
 
