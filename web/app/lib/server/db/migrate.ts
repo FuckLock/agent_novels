@@ -9,8 +9,9 @@ import { phase5Migrations } from './migrations/phase5';
 import { phase5bMigrations } from './migrations/phase5b';
 import { phase5cMigrations } from './migrations/phase5c';
 import { phase6Migrations } from './migrations/phase6';
+import { phase8Migrations } from './migrations/phase8';
 
-export const CURRENT_SCHEMA_VERSION = 7;
+export const CURRENT_SCHEMA_VERSION = 8;
 
 const migrations = [
   ...phase2Migrations,
@@ -20,6 +21,7 @@ const migrations = [
   ...phase5bMigrations,
   ...phase5cMigrations,
   ...phase6Migrations,
+  ...phase8Migrations,
 ];
 
 interface MigrationRow {

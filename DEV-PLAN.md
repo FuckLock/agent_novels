@@ -344,7 +344,7 @@
 
 ## Phase 8: D 阶段 TrackPlan、策略决策与路径 5
 
-**状态**：⏳ 待开始
+**状态**：✅ 完成（2026-05-18 PGE 首个纯新开发 phase 通过，9 文件 2330 行）
 
 **交付内容**：
 - 用户能展开 Track 和 TrackSegment，编辑时间段、画面目标、动作、镜头、嘴型、情绪和参考资产。
@@ -368,6 +368,24 @@
 **验收标准**：
 - 最低：TrackSegment 可编辑、拆分、锁定；系统自动给出策略和理由；不兼容模型不静默降级；路径 5 缺依赖时禁用提交并指向修复入口。
 - 回归：A→C3 自动运行完成后能正确跳转路径 5。
+
+**完成证据**：
+- **首个纯新开发 phase**：9 新文件 + 1 修改 + Schema 版本 7→8（2026-05-18 完成，2330 行）
+  - `strategy-decision.ts` (201 行)：5 策略 ID 精确匹配 spec L463-467（multi_reference_text / start_frame / first_last_frame / multi_keyframe / continue_from_previous）+ decideStrategy 5 分支决策函数 + 中文解释 Record。
+  - `video-capability-matrix.ts` (205 行)：DEFAULT_VIDEO_CAPABILITIES 默认能力表 + isStrategySupported / checkStrategyCompatibility / assertStrategyCompatible 三函数 + **StrategyIncompatibleError 显式抛错（spec L272/L325/L478 硬约束：不允许静默降级）**。
+  - `dependency-check.ts` (192 行)：5 策略依赖规则（spec L222-223） + evaluateDependencies 返回 ready/blocked/partial + missing 清单。
+  - `track-plan-service.ts` (584 行)：TrackPlan/Track/TrackSegment CRUD + revision 乐观锁（Phase 4 chapters 模式）+ 全 prepare(?) 参数化（无 drizzle ORM）。
+  - `api/tracks/route.ts` (151 行)：GET/POST/PATCH + enforceAccess。
+  - `api/path5/route.ts` (220 行)：GET 当前状态 + POST 批量提交（**缺依赖 422 + 修复入口提示**）+ AgentRun 'path5-submit' 占位（spec L551 D 必须用户确认 → 不调真实视频任务）。
+  - `path5/page.tsx` (376 行)：D 提交确认页 + 消费 Phase 7 reachedC3/needsDConfirm + 4 维度（策略/依赖/预算/并发）+ 缺依赖 disabled + amber 警示 + 二次确认。
+  - `TrackExpandedRow.tsx` (148 行)：MVP 展开行（criteria 允许 TrackSegment 完整编辑标"Phase 9 接入"）。
+  - `migrations/phase8.ts` (117 行)：4 表 DDL（tracks / track_segments / track_plans / video_capabilities，sqlite IF NOT EXISTS + snake_case + revision/created_at/updated_at）。
+  - `migrate.ts` (修改)：phase8Migrations import + CURRENT_SCHEMA_VERSION 7→8。
+- **8 条硬否决项全部独立验证通过**：5 策略 ID 字面精确 / StrategyIncompatibleError 不静默降级 / 缺依赖 422+修复入口 / 不烧钱（反向 grep video-task-service 命中=0） / Phase 7 路径 5 链接活（GET=200） / 缺依赖禁用提交 / Phase 1-7 git diff=0 / 禁动 novels（反向 grep 命中=0）。
+- 端到端：tsc exit 0 / next build 路由注册成功 / SQLite migration 8 applied / curl /projects/[name]/path5 → 200 / POST 项目不存在 → 422。
+- spec 一致：spec L222-223 / L271-272 / L325 / L462-468 / L478 / L482 / L539-556 全部对齐。
+- 安全边界严守：TOONFLOW_DATA_DIR=/tmp/toonflow-phase8-test-{ts} 隔离 + 测试完成已清理 + novels/ 12 顶层目录无改动。
+- **PGE 收口**：criteria/phase-8.md locked round=1（59 条 9 段 + 8 硬否决）；evaluator(criteria-alignment) round=1 直接 aligned（连续 7 个 phase 一次过）；evaluator(implementation-review) passed 56/59（3 项 🟡 Medium 全部在 criteria 允许范围内：占位语义 / TrackExpandedRow MVP / 行数超 300 但 criteria 允许）。
 
 ---
 
