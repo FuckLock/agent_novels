@@ -9,6 +9,9 @@ import PipelineGraph from './production/PipelineGraph';
 import NodeDetailPanel from './production/NodeDetailPanel';
 import ProductionChatPanel from './production/ProductionChatPanel';
 
+// Phase 7: ~sd auto / 自动管线 入口（pipeline-service + auto-run-service）
+// 保留 seedance 手动入口（manual 模式），新增一键全自动启动按钮跳转 /auto-run 大屏。
+
 interface ProductionTabProps {
   project: ProjectDetail;
   encodedName: string;
@@ -113,19 +116,72 @@ export default function ProductionTab({ project, encodedName, name, onReload }: 
     onReload();
   }, [onReload]);
 
+  // Phase 7 接入：~sd auto / pipeline-service 启动入口（手动 seedance 入口仍保留在右侧 ProductionChatPanel）
+  const handleStartAutoRun = useCallback(async () => {
+    if (!selectedEpisode) return;
+    try {
+      const res = await fetch(`/api/projects/${encodedName}/auto-run`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'start', episode: selectedEpisode }),
+      });
+      if (!res.ok && res.status !== 409 && res.status !== 202) {
+        const payload = await res.json().catch(() => ({}));
+        alert(`启动一键全自动失败：${(payload as { error?: string }).error || res.status}`);
+        return;
+      }
+    } catch (err) {
+      alert(`网络错误：${err instanceof Error ? err.message : '未知'}`);
+      return;
+    }
+    // 跳转 auto-run 大屏（5 模式视图）
+    window.location.href = `/projects/${encodedName}/auto-run`;
+  }, [encodedName, selectedEpisode]);
+
+  // 同时支持 Phase 7 pipeline-service 状态快照查询（与现有 seedance pipeline-status 并行）
+  const fetchPipelineSnapshot = useCallback(async () => {
+    if (!selectedEpisode) return;
+    try {
+      await fetch(`/api/projects/${encodedName}/pipeline?episode=${selectedEpisode}`);
+    } catch {
+      // 静默失败，不影响 manual 模式
+    }
+  }, [encodedName, selectedEpisode]);
+
+  useEffect(() => {
+    void fetchPipelineSnapshot();
+  }, [fetchPipelineSnapshot]);
+
   return (
     <div className="flex h-full -m-6">
       {/* 左侧画布区 60% */}
       <div className="w-[60%] flex flex-col border-r border-gray-200 bg-gray-50">
-        {/* 顶部：集数下拉选择器 */}
-        <div className="px-5 py-4 border-b border-gray-200 bg-white shrink-0">
-          <EpisodeDropdown
-            projectName={name}
-            episodes={episodes}
-            selectedEpisode={selectedEpisode}
-            onSelect={setSelectedEpisode}
-            runningEpisodes={runningEpisodes}
-          />
+        {/* 顶部：集数下拉选择器 + 一键全自动入口 */}
+        <div className="px-5 py-4 border-b border-gray-200 bg-white shrink-0 flex items-center gap-3">
+          <div className="flex-1">
+            <EpisodeDropdown
+              projectName={name}
+              episodes={episodes}
+              selectedEpisode={selectedEpisode}
+              onSelect={setSelectedEpisode}
+              runningEpisodes={runningEpisodes}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => void handleStartAutoRun()}
+            disabled={!selectedEpisode}
+            className="px-3 py-1.5 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700 disabled:opacity-50"
+            title="启动 ~sd auto（A→C3 自动管线；D 阶段需路径 5 确认）"
+          >
+            一键全自动 ~sd auto
+          </button>
+          <a
+            href={`/projects/${encodedName}/auto-run`}
+            className="px-3 py-1.5 rounded-md border border-gray-300 bg-white text-sm text-gray-700 hover:bg-gray-50"
+          >
+            自动管线大屏
+          </a>
         </div>
 
         {/* 跨集运行信息条：其他集有 running 任务时显示 */}
