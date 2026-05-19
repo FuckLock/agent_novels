@@ -11,6 +11,8 @@ import {
   summarizeDependencyCheck,
 } from '@/app/lib/server/production/dependency-check';
 import { recordAgentRun } from '@/app/lib/server/agent/agent-run-service';
+import { submitVideoTask } from '@/app/lib/server/production/video-task-service';
+import { computeRequestHash } from '@/app/lib/server/tasks/idempotency';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -19,9 +21,10 @@ export const runtime = 'nodejs';
  * /api/projects/[name]/path5
  *
  * GET  ?episode=N    路径 5 当前状态：reachedC3 / Track 列表 / 依赖 / 预算预估 / 并发上限
- * POST {episode}     批量提交（缺依赖 → 4xx 拒绝；不调用 Phase 9 视频任务服务，仅写 AgentRun 占位）
+ * POST {episode}     批量提交（缺依赖 → 4xx 拒绝；调用 video-task-service.submitVideoTask 真实接入 — Phase 9）
  *
- * 边界：D 阶段视频任务**Phase 9 接入**，本 phase 严禁调用 Phase 9 视频任务服务。
+ * Phase 9 接入：POST 'submit' 调用 submitVideoTask 真实提交视频任务（mock 模式保护下）
+ * 兼容：AgentRun 'path5-submit' 仍保留作为 fallback / 留痕（Phase 8 沿用）
  */
 
 function normalizeIdentifier(value: string) {
@@ -102,16 +105,19 @@ export async function GET(
 }
 
 /**
- * POST 批量提交（path5-submit）
- *
- * **严禁**调用 Phase 9 视频任务服务 / 视频任务提交接口（Phase 9 落地）
- *     这是 Phase 9 接入范围；本 phase 只创建 AgentRun 占位，spec 硬约束。
+ * POST 批量提交（path5-submit） — **Phase 9 真实接入**
  *
  * 行为：
  *   1. 加载 TrackPlan + 依赖检查
  *   2. 缺依赖（blocked）→ 返回 422 + 修复入口清单（spec L482 / L546）
- *   3. 依赖 ready → 锁定 TrackPlan + 记录 AgentRun（action: 'path5-submit'）
- *   4. 返回 { ok: true, agentRunId, message: 'Phase 9 接入真实视频任务' }
+ *   3. 依赖 ready → 锁定 TrackPlan
+ *   4. **新增**：逐 Track 调用 submitVideoTask（video-task-service） — 真实任务提交（mock 模式保护下）
+ *   5. AgentRun 'path5-submit' 留痕（沿用 Phase 8 模式）
+ *   6. 返回 { ok: true, agentRunId, taskIds, results, duplicateBlockedCount, requestHashes }
+ *
+ * 真实费用安全（spec L419 + 真实费用安全硬约束）：
+ *   - video-task-service.submitVideoTask 内部判断 isMockMode() — mock 模式下零真实费用
+ *   - 幂等性：computeRequestHash + checkDuplicate 防重复扣费 — duplicate_blocked 状态返回
  */
 export async function POST(
   request: Request,
@@ -173,8 +179,70 @@ export async function POST(
     // 3. 依赖 ready → 锁定 TrackPlan
     const lockedPlan = await lockTrackPlan(name, plan.id);
 
-    // 4. 记录 AgentRun 占位（**不调用** Phase 9 视频任务服务 / 视频任务提交接口（Phase 9 落地）
-    //    — 这是 Phase 9 接入范围，本 phase 严禁烧钱）
+    // 4. **Phase 9 真实接入**：逐 Track 调用 submitVideoTask
+    //    幂等性（spec L419 + L753）：computeRequestHash + duplicate_blocked 拦截
+    //    真实费用安全：video-task-service 内部 isMockMode() 判断 — mock 模式下零费用
+    const submitResults: Array<{
+      trackId: string;
+      strategy: string;
+      taskId: string;
+      status: string;
+      requestHash: string;
+      providerJobId: string | null;
+      existingStatus?: string;
+      message?: string;
+    }> = [];
+    const requestHashes: string[] = [];
+    let duplicateBlockedCount = 0;
+
+    for (const track of lockedPlan.tracks) {
+      const prompt = [track.objective, track.motion, track.shot].filter(Boolean).join(' / ');
+      const modelId = String(track.strategy || 'default'); // MVP: 模型 ID 占位（实际由 model-registry 提供）
+      const submitInput = {
+        projectId: lockedPlan.projectId,
+        trackId: track.id,
+        episode,
+        strategy: track.strategy,
+        prompt,
+        modelId,
+        durationSeconds: track.durationSeconds || 0,
+        estimatedCost: DEFAULT_USD_PER_TRACK,
+        payload: {
+          objective: track.objective,
+          motion: track.motion,
+          shot: track.shot,
+          lipSync: track.lipSync,
+          mood: track.mood,
+          referenceAssets: track.referenceAssets,
+        },
+      };
+      // computeRequestHash 显式调用（也内嵌于 submitVideoTask）— 供 path5 报告 + 留痕
+      const requestHash = computeRequestHash({
+        projectId: submitInput.projectId,
+        trackId: submitInput.trackId,
+        episode: submitInput.episode,
+        strategy: submitInput.strategy,
+        prompt: submitInput.prompt,
+        modelId: submitInput.modelId,
+        extra: { durationSeconds: submitInput.durationSeconds },
+      });
+      requestHashes.push(requestHash);
+
+      const result = await submitVideoTask(submitInput);
+      if (result.status === 'duplicate_blocked') duplicateBlockedCount += 1;
+      submitResults.push({
+        trackId: track.id,
+        strategy: track.strategy,
+        taskId: result.taskId,
+        status: result.status,
+        requestHash: result.requestHash,
+        providerJobId: result.providerJobId,
+        existingStatus: result.existingStatus,
+        message: result.message,
+      });
+    }
+
+    // 5. AgentRun 'path5-submit' 留痕（沿用 Phase 8）
     const agentRunId = await recordAgentRun(name, {
       action: 'path5-submit',
       agentName: 'path5-batch-submitter',
@@ -184,12 +252,14 @@ export async function POST(
         trackPlanId: lockedPlan.id,
         trackIds: lockedPlan.tracks.map((t) => t.id),
         strategies: lockedPlan.tracks.map((t) => ({ trackId: t.id, strategy: t.strategy })),
+        submitResults,
+        duplicateBlockedCount,
         budgetEstimate: {
           trackCount: lockedPlan.tracks.length,
           estimatedTokens: lockedPlan.tracks.length * DEFAULT_TOKEN_PER_TRACK,
           estimatedCostUsd: lockedPlan.tracks.length * DEFAULT_USD_PER_TRACK,
         },
-        note: 'Phase 8 占位（TODO: Phase 9 接入真实视频任务）',
+        note: 'Phase 9 真实接入 — 调用 video-task-service.submitVideoTask（mock 模式保护下）',
       },
       usage: {
         promptTokens: lockedPlan.tracks.length * DEFAULT_TOKEN_PER_TRACK,
@@ -205,9 +275,14 @@ export async function POST(
         ok: true,
         agentRunId,
         plan: lockedPlan,
+        taskIds: submitResults.map((r) => r.taskId),
+        trackResults: submitResults,
+        requestHashes,
+        duplicateBlockedCount,
         message:
-          'D 阶段 TrackPlan 已锁定（path5-submit 占位）。Phase 9 接入真实视频任务后才会真正发出 video task。',
-        phase9Pending: true,
+          duplicateBlockedCount > 0
+            ? `已提交，但 ${duplicateBlockedCount} 个 Track 因 duplicate_blocked 被拦截（防重复扣费）`
+            : 'D 阶段 TrackPlan 已锁定 + 任务已提交（Phase 9 真实接入）',
       },
       { status: 202 },
     );

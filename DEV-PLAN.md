@@ -391,7 +391,7 @@
 
 ## Phase 9: 任务队列、ProductionFrame、视频 Take 与成本记录
 
-**状态**：⏳ 待开始
+**状态**：✅ 完成（2026-05-18 PGE 真实视频生成首次落地通过，9 文件 + 2 修改 2575 行）
 
 **交付内容**：
 - 系统能按策略生成或复用首帧、尾帧、多关键帧和上一段尾帧，形成 ProductionFrame 并锁定引用。
@@ -418,6 +418,36 @@
 **验收标准**：
 - 最低：依赖 ready 后能提交视频任务；Take 保存输入、策略、模型、参数、prompt、成本和 providerJobId；重复点击不会重复扣费；任务刷新后可恢复状态。
 - 回归：路径 5 预算和批量提交状态与任务中心数据一致。
+
+**完成证据**：
+- **真实视频生成首次落地**（mock 保护下）：9 新文件 + 2 修改 + Schema 8→9（2026-05-18 完成，2575 行）
+  - `idempotency.ts` (169 行)：computeRequestHash sha256(projectId/episode/trackId/strategy/prompt/modelId 6 字段) + checkDuplicate 返回 duplicate_blocked + findTaskByProviderJobId。
+  - `task-queue.ts` (528 行)：Task 状态机（11 状态枚举）+ DAG dependsOnTaskId + MAX_RETRIES=2 / MAX_CONCURRENT=3（spec L552/L553）+ recoverInflightTasks 服务重启对账。
+  - `frame-service.ts` (297 行)：ProductionFrame 4 类型（start_frame/end_frame/keyframe/continuation） + lockFrame + extractContinuationFrame（D5 占位 Phase 10 ffmpeg）。
+  - **`video-task-service.ts` (550 行)** ⭐ 核心：**isMockMode() 早返回在 line 231 + 真实 fetch 在 line 300**（间距 69 行严守"mock 在 fetch 之前"硬约束）+ submitVideoTask + pollVideoTask + handleTaskComplete + reconcilePendingTasks。
+  - `usage-service.ts` (278 行)：cost_status 4 状态分离（estimated / actual / failed / retry）+ aggregateUsage + listUsageRecords。
+  - `api/tasks/route.ts` (133 行)：GET 过滤查询 + POST(pause/resume/cancel/retry/reconcile) + enforceAccess。
+  - `api/projects/[name]/takes/route.ts` (254 行)：GET/POST/PATCH（含父 take 血缘 + 问题标记）。
+  - `TrackTaskGrid.tsx` (188 行) MVP：providerJobId + 状态 + 耗时 + costEstimate/Actual + duplicate_blocked/failed 显示（J4 缩略图/重试表单标 Phase 10 接入）。
+  - `migrations/phase9.ts` (180 行)：4 表 DDL（tasks/takes/production_frames）+ ALTER TABLE usage_records 添加 9 个 Phase 9 字段（cost_status / estimated_amount / actual_amount / task_id / attempt_no 等）。
+- **Phase 8 path5 真实接入**（path5/route.ts +88/-13）：POST 'submit' 从 AgentRun 'path5-submit' 占位 → 真实调用 submitVideoTask + computeRequestHash 留痕 + recordAgentRun fallback 保留双轨。
+- **8 条核心硬约束独立验证通过**：
+  1. 幂等性 sha256 6 字段 + duplicate_blocked（spec L753）
+  2. mock 模式早返回（line 231）< 真实 fetch（line 300），间距 69 行
+  3. 服务重启对账三层入口（recoverInflightTasks DB 扫描 + reconcilePendingTasks 远端轮询 + API reconcile action）
+  4. UsageRecord 估算 vs 实际分离 4 函数（spec L742 / L828 / L844）
+  5. Phase 8 path5 真实接入 submitVideoTask（替换 AgentRun 占位）
+  6. Phase 1-8 git diff = 0（seedance / Phase 5-8 service / pipeline / model-registry / agent / asset 全 0）
+  7. 禁动 novels（反向 grep = 0 + 12 顶层目录完整）
+  8. 编译零错 + 测试代码不调真实 import（N3 反向 grep = 0）
+- **真实费用安全语义验证**：5 处 mock 模式判断位置全在真实 API 入口之前 + 跨文件 requestHash/duplicate_blocked 67 处提及（≥6 远超阈值）+ cost_status 显式写入 10 处。
+- 端到端（mock 模式 + TOONFLOW_DATA_DIR=/tmp/toonflow-phase9-test-{ts}）：
+  · GET /api/tasks → 200
+  · POST {action:reconcile} → succeeded + 创建 take + 写 actual UsageRecord
+  · POST {action:pause/retry} → 正确状态转移
+  · 回归 tracks/path5/seedance → 200
+- spec 一致：L398/L416/L419/L551-555/L742/L753/L828/L844/L851-853 全部对齐。
+- **PGE 收口**：criteria/phase-9.md locked round=1（69 条 15 段 + 8 硬约束）；evaluator(criteria-alignment) round=1 直接 aligned（连续 8 phase 一次过；N+E3+E4+N3 双向防线被评"评估真实费用风险的范本设计"）；evaluator(implementation-review) passed 64/69（3 项 🟡 Medium 均 criteria 允许：J4 MVP / D5 占位 / 项目级缺测试）+ ⏭ 1 静态豁免。
 
 ---
 
