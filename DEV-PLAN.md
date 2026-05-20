@@ -636,7 +636,7 @@
 
 ## Phase 15: Electron 壳、打包与端到端闭环
 
-**状态**：⏳ 待开始（`electron/main.ts` + `preload.ts` 壳存在但配套页面 + E2E 缺）
+**状态**：✅ 完成（2026-05-19 PGE 最后一个 phase 通过，3 新建 + 0 修改 783 行 + 0 critical/high/low）
 
 **交付内容**：
 - Electron 只负责启动同一套 HTTP Web 服务和打开窗口，不形成独立业务逻辑或独立数据路径。
